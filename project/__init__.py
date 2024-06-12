@@ -27,4 +27,7 @@ def create_app(config_filename ="config.py"):
     def load_user(user_id):
         return User.query.get(int(user_id))
     
+    from project.views import bp as main_bp
+    app.register_blueprint(main_bp)
+    
     return app

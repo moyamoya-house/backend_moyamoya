@@ -188,3 +188,98 @@ def delete_moyamoya(id):
     else:
         return jsonify({'error': 'moyamoya not found'}), 404
 
+# potsテーブル crudAPI
+
+# pots 全件取得
+@bp.route('/pots',methods=['GET'])
+def get_pots_all():
+    pots = Pots.query.all()
+    pots_data = []
+    
+    for pot in pots:
+        pot_data = {
+            "id": pot.pots_id,
+            "audio": pot.audio_file,
+            "stress_level": pot.stress_level,
+            "emotion_score": pot.emotion_score,
+            "user_id": pot.pots_user_id,
+            "created_at": pot.created_at
+        }
+        pots_data.append(pot_data)
+    return jsonify(pots_data), 200
+
+# pots create
+@bp.route('/pots',methods=['POST'])
+def create_pots():
+    data = request.get_json()
+    audio = data.get('audio')
+    emotion = data.get('emotion')
+    stress = data.get('stress')
+    user_id = data.get('user_id')
+    
+    if audio and emotion and stress and user_id:
+        pots = Pots(
+            audio_file = audio,
+            emotion_score = emotion,
+            stress_level = stress,
+            pots_user_id = user_id
+        )
+        db.session.add(pots)
+        db.session.commit()
+        return jsonify({
+            'id': pots.pots_id,
+            'audio_file': pots.audio_file,
+            "emotion_score": pots.emotion_score,
+            'stress': pots.stress_level,
+            'user_id': pots.pots_user_id,
+            'created_at': pots.created_at
+        }), 201
+    else:
+        return jsonify({'error': 'Missingrequired fields'}), 400
+
+# pots データ単体取得
+@bp.route('/pots/<int:id>',methods=['GET'])
+def get_pots(id):
+    pots = Pots.query.get(id)
+    if pots:
+        pots_data = {
+            'id': pots.pots_id,
+            'audio': pots.audio_file,
+            'emotion_score': pots.emotion_score,
+            'stress_level': pots.stress_level,
+            'pots_user_id': pots.pots_user_id,
+            'created_at': pots.created_at
+        }
+        return jsonify(pots_data), 200
+    else:
+        return jsonify({'error': 'pots not found'}), 404
+
+# pots updateメソッド
+@bp.route('/pots/<int:id>', methods=['PUT'])
+def update_pots(id):
+    pots = Pots.query.get(id)
+    if pots:
+        data = request.get_json()
+        emotion = data.get('emotion')
+        stress = data.get('stress')
+        if emotion:
+            pots.emotion_score = emotion
+        if stress:
+            pots.stress_level = stress
+        db.session.commit()
+        return jsonify({'message': 'pots updated successfully'}), 200
+    else:
+        return jsonify({'error': 'pots not found'}), 404
+
+# pots deleteメソッド
+@bp.route('/pots/<int:id>', methods=['DELETE'])
+def delete_pots(id):
+    pots = Pots.query.get(id)
+    if pots:
+        db.session.delete(pots)
+        db.session.commit()
+        return jsonify({'message': 'pots deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'pots not found'}), 404
+
+

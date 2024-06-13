@@ -14,7 +14,8 @@ class User(db.Model,UserMixin):
     
     # relation
     moyamoya = db.relationship('Moyamoya', backref='user',lazy=True)
-    message = db.relationship('Chats', backref='user', lazy=True)
+    sent_messages = db.relationship('Chats', foreign_keys='Chats.send_user_id', backref='sender_by', lazy=True)
+    received_messages = db.relationship('Chats', foreign_keys='Chats.receiver_user_id', backref='receiver_by', lazy=True)
     
     def get_id(self):
         return str(self.user_id)

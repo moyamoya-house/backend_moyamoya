@@ -5,6 +5,7 @@ from datetime import datetime
 
 bp = Blueprint('main',__name__)
 
+# user 全体取得
 @bp.route('/users',methods=['GET'])
 def get_users():
     users = User.query.all()
@@ -21,6 +22,7 @@ def get_users():
         user_data.append(users_data)
     return jsonify(user_data), 200
 
+# user createメソッド
 @bp.route('/users',methods=['POST'])
 def create_user():
     data = request.get_json()
@@ -50,7 +52,7 @@ def create_user():
     else:
         return jsonify({'error': 'Missing required fields'}), 400
 
-
+# user単体取得
 @bp.route('/users/<int:id>',methods=['GET'])
 def get_user(id):
     user = User.query.get(id)
@@ -67,7 +69,7 @@ def get_user(id):
     else:
         return jsonify({'error': 'user not found'}), 404
 
-
+# user 更新処理
 @bp.route('/users/<int:id>',methods=['PUT'])
 def update_user(id):
     user = User.query.get(id)
@@ -91,7 +93,7 @@ def update_user(id):
     else:
         return jsonify({'error': 'user not found'}), 404
 
-
+# user 削除メソッド
 @bp.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
     user = User.query.get(id)

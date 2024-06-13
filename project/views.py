@@ -1,4 +1,5 @@
 from flask import request, jsonify, Blueprint
+from flask_login import current_user
 from project.models import User, Moyamoya, Chats, Follow, Pots
 from project import db, create_app
 from datetime import datetime
@@ -26,10 +27,10 @@ def get_users():
 @bp.route('/users',methods=['POST'])
 def create_user():
     data = request.get_json()
-    name = data.get('name')
+    name = data.get('username')
     password = data.get('password')
     email = data.get('email')
-    prof_image = data.get('prof_image')
+    prof_image = data.get('profimage')
     
     if name and password and email:
         user = User(
@@ -281,5 +282,25 @@ def delete_pots(id):
         return jsonify({'message': 'pots deleted successfully'}), 200
     else:
         return jsonify({'error': 'pots not found'}), 404
+
+
+# chats crudAPI
+
+# chats 全件取得
+@bp.route('/chats',methods=['GET'])
+def get_chat_all():
+    chat = Chats.query.all()
+    chats_data = []
+    
+    for chats in chat:
+        chat_data = {
+            'id': chats.chat_id,
+            'message': chats.message,
+            'send_user_id': chats.send_user_id,
+            'receiver_user_id': chats.receiver_user_id,
+            'created_at': chats.created_at
+        }
+        chats_data.append(chat_data)
+    return jsonify(chats_data)
 
 

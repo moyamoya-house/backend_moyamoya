@@ -22,7 +22,7 @@ def create_app(config_filename ="config.py"):
     login_manager.init_app(app)
     cors.init_app(app)
     
-    from project.models import User
+    from project.models import User, Pots, Moyamoya, Chats, Follow
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))

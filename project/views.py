@@ -1,8 +1,9 @@
 from flask import request, jsonify, Blueprint
-from flask_login import current_user
+from flask_login import current_user, login_user
 from project.models import User, Moyamoya, Chats, Follow, Pots
 from project import db, create_app
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 bp = Blueprint('main',__name__)
 
@@ -32,10 +33,13 @@ def create_user():
     email = data.get('email')
     prof_image = data.get('profimage')
     
+    if password:
+        hash_password = generate_password_hash(password, method='sha256')
+    
     if name and password and email:
         user = User(
             user_name = name,
-            password = password,
+            password = hash_password,
             e_mail = email,
             prof_image = prof_image,
             created_at = datetime.utcnow()
@@ -105,6 +109,22 @@ def delete_user(id):
     else:
         return jsonify({'error': 'user not found'}), 404
 
+
+# login処理
+@bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    
+    user = User.query.filter_by(user_name=username).first()
+    
+    if user :
+        if check_password_hash(user.password,password):
+            login_user(user)
+            return jsonify(user.user_name), 200
+        else:
+            return jsonify({'error': 'login error'}), 400
 
 # MoyamoyaテーブルcrudAPI作成
 

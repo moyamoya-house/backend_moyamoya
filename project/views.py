@@ -1,6 +1,7 @@
 from flask import request, jsonify, Blueprint
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from project import db, create_app
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -122,9 +123,24 @@ def login():
     if user :
         if check_password_hash(user.password,password):
             login_user(user)
-            return jsonify(user.user_name), 200
+            access_token = create_access_token(identity=user.user_id)
+            return jsonify({'token':access_token}), 200
         else:
             return jsonify({'error': 'login error'}), 400
+        
+
+# mypage
+@bp.route('/mypage')
+@jwt_required()
+def mypage():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if user:
+        return jsonify({
+            'username': user.username,
+        }), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
 
 # MoyamoyaテーブルcrudAPI作成
 

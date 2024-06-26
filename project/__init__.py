@@ -25,6 +25,7 @@ def create_app(config_filename ="config.py"):
     login_manager.init_app(app)
     cors.init_app(app)
     jwt.init_app(app)
+    app.config["UPLOAD_FOLDER"] = "project/static/prof_image/"
     
     app.config['JWT_SECRET_KEY'] = 'moyamoya_house'
     

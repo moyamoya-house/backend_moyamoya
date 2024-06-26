@@ -1,10 +1,12 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, current_app
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from project import db, create_app
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+import os
 
 bp = Blueprint('main',__name__)
 
@@ -28,11 +30,13 @@ def get_users():
 # user createメソッド
 @bp.route('/users',methods=['POST'])
 def create_user():
-    data = request.get_json()
-    name = data.get('username')
-    password = data.get('password')
-    email = data.get('email')
-    prof_image = data.get('profimage')
+    name = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    prof_image = request.files['profimage']
+    
+    prof_image_filename = secure_filename(prof_image.filename)
+    prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'],prof_image_filename))
     
     if password:
         hash_password = generate_password_hash(password, method='sha256')
@@ -42,7 +46,7 @@ def create_user():
             user_name = name,
             password = hash_password,
             e_mail = email,
-            prof_image = prof_image,
+            prof_image = prof_image_filename,
             created_at = datetime.utcnow()
         )
         db.session.add(user)
@@ -130,14 +134,15 @@ def login():
         
 
 # mypage
-@bp.route('/mypage')
+@bp.route('/mypage', methods=['GET'])
 @jwt_required()
 def mypage():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     if user:
         return jsonify({
-            'username': user.username,
+            'username': user.user_name,
+            'usericon': user.prof_image,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404

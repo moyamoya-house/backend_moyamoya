@@ -27,7 +27,7 @@ def create_app(config_filename ="config.py"):
     jwt.init_app(app)
     app.config["UPLOAD_FOLDER"] = "project/static/prof_image/"
     
-    app.config['JWT_SECRET_KEY'] = 'moyamoya_house'
+    app.config['SECRET_KEY'] = 'moyamoya_house'
     
     from project.models import User, Pots, Moyamoya, Chats, Follow
     @login_manager.user_loader

@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint, current_app
+from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -142,10 +142,15 @@ def mypage():
     if user:
         return jsonify({
             'username': user.user_name,
-            'usericon': user.prof_image,
+            'usericon': f'project/static/prof_image/{user.prof_image}' if user.prof_image else None,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
+
+# prof_imageパス
+@bp.route('/project/static/prof_image/<filename>',methods=['GET'])
+def prof_image(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'],filename)
 
 # MoyamoyaテーブルcrudAPI作成
 

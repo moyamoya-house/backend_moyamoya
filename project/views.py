@@ -1,7 +1,7 @@
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from project import db, create_app
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -142,13 +142,13 @@ def mypage():
     if user:
         return jsonify({
             'username': user.user_name,
-            'usericon': f'project/static/prof_image/{user.prof_image}' if user.prof_image else None,
+            'usericon': f'/prof_image/{user.prof_image}' if user.prof_image else None,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
 
 # prof_imageパス
-@bp.route('/project/static/prof_image/<filename>',methods=['GET'])
+@bp.route('/prof_image/<filename>',methods=['GET'])
 def prof_image(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'],filename)
 

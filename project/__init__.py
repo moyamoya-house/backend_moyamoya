@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import os
+from datetime import timedelta
 
 db = SQLAlchemy()
 
@@ -28,7 +29,9 @@ def create_app(config_filename ="config.py"):
     app.config["UPLOAD_FOLDER"] = "project/static/prof_image/"
     
     app.config['SECRET_KEY'] = 'moyamoya_house'
-    
+    app.config['JWT_SECRET_KEY'] = 'moyamoya_house'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
     from project.models import User, Pots, Moyamoya, Chats, Follow
     @login_manager.user_loader
     def load_user(user_id):

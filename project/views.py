@@ -142,15 +142,15 @@ def mypage():
     if user:
         return jsonify({
             'username': user.user_name,
-            'usericon': f'/prof_image/{user.prof_image}' if user.prof_image else None,
+            'prof_image': user.prof_image,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
 
 # prof_imageパス
-@bp.route('/prof_image/<filename>',methods=['GET'])
+@bp.route('/prof_image/<filename>', methods=['GET'])
 def prof_image(filename):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'],filename)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 # MoyamoyaテーブルcrudAPI作成
 

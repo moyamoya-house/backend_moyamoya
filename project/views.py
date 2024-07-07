@@ -73,6 +73,7 @@ def get_user(id):
             'password': user.password,
             'email': user.e_mail,
             'prof_image': user.prof_image,
+            'second_image': user.second_image,
             'created_at': user.created_at.strftime("%Y-%m-%d %H:%M:%S") if user.created_at else None
         }
         return jsonify(user_data), 200
@@ -84,11 +85,20 @@ def get_user(id):
 def update_user(id):
     user = User.query.get(id)
     if user:
-        data = request.get_json()
-        name = data.get('name')
-        password = data.get('password')
-        email = data.get('email')
-        prof_image = data.get('profimage')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        email = request.form.get('email')
+        prof_image = request.files['profimage']
+        second_image = request.files['secondimage']
+    
+        # prof_image
+        prof_image_filename = secure_filename(prof_image.filename)
+        prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'],prof_image_filename))
+        
+        # second_prof_image
+        second_image_filename = secure_filename(second_image.filename)
+        second_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_SECOND'],second_image_filename))
+    
         if name :
             user.user_name = name
         if password:
@@ -97,6 +107,8 @@ def update_user(id):
             user.e_mail = email
         if prof_image:
             user.prof_image = prof_image
+        if second_image:
+            user.second_image = second_image
         
         db.session.commit()
         return jsonify({'message': 'user updated successfully'}), 200
@@ -141,8 +153,11 @@ def mypage():
     user = User.query.get(current_user_id)
     if user:
         return jsonify({
-            'username': user.user_name,
+            'name': user.user_name,
+            'password': user.password,
+            'email': user.e_mail,
             'prof_image': user.prof_image,
+            'second_image': user.second_image,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
@@ -151,6 +166,11 @@ def mypage():
 @bp.route('/prof_image/<filename>', methods=['GET'])
 def prof_image(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+# second_imageパス
+@bp.route('/second_image/<filename>', methods=['GET'])
+def second_prof_image(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER_SECOND'],filename)
 
 # MoyamoyaテーブルcrudAPI作成
 

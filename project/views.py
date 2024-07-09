@@ -57,6 +57,7 @@ def create_user():
             'password': user.password,
             'email': user.e_mail,
             'prof_image': user.prof_image,
+            'second_image': user.second_image,
             'created_at': user.created_at
         }), 201
     else:
@@ -88,27 +89,24 @@ def update_user(id):
         name = request.form.get('name')
         password = request.form.get('password')
         email = request.form.get('email')
-        prof_image = request.files['profimage']
-        second_image = request.files['secondimage']
+        prof_image = request.files.get('profimage')
+        second_image = request.files.get('secondimage')
     
-        # prof_image
-        prof_image_filename = secure_filename(prof_image.filename)
-        prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'],prof_image_filename))
-        
-        # second_prof_image
-        second_image_filename = secure_filename(second_image.filename)
-        second_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_SECOND'],second_image_filename))
-    
+        if prof_image:
+            prof_image_filename = secure_filename(prof_image.filename)
+            prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], prof_image_filename))
+            user.prof_image = prof_image_filename
+
+        if second_image:
+            second_image_filename = secure_filename(second_image.filename)
+            second_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_SECOND'], second_image_filename))
+            user.second_image = second_image_filename
         if name :
             user.user_name = name
         if password:
             user.password = password
         if email:
             user.e_mail = email
-        if prof_image:
-            user.prof_image = prof_image
-        if second_image:
-            user.second_image = second_image
         
         db.session.commit()
         return jsonify({'message': 'user updated successfully'}), 200

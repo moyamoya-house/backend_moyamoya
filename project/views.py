@@ -75,6 +75,7 @@ def get_user(id):
             'email': user.e_mail,
             'prof_image': user.prof_image,
             'second_image': user.second_image,
+            'comment': user.prof_comment,
             'created_at': user.created_at.strftime("%Y-%m-%d %H:%M:%S") if user.created_at else None
         }
         return jsonify(user_data), 200
@@ -89,6 +90,7 @@ def update_user(id):
         name = request.form.get('name')
         password = request.form.get('password')
         email = request.form.get('email')
+        comment = request.form.get('comment')
         prof_image = request.files.get('profimage')
         second_image = request.files.get('secondimage')
     
@@ -107,6 +109,8 @@ def update_user(id):
             user.password = password
         if email:
             user.e_mail = email
+        if comment:
+            user.prof_comment = comment
         
         db.session.commit()
         return jsonify({'message': 'user updated successfully'}), 200

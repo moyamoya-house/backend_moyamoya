@@ -12,6 +12,7 @@ class User(db.Model,UserMixin):
     created_at = db.Column(db.DateTime , default= datetime.utcnow)
     prof_image = db.Column(db.String(255), nullable=True)
     second_image = db.Column(db.String(255), nullable=True)
+    prof_comment = db.Column(db.String(255), nullable=True)
     
     # relation
     moyamoya = db.relationship('Moyamoya', backref='user',lazy=True)

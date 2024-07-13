@@ -91,8 +91,8 @@ def update_user(id):
         password = request.form.get('password')
         email = request.form.get('email')
         comment = request.form.get('comment')
-        prof_image = request.files.get('profimage')
-        second_image = request.files.get('secondimage')
+        prof_image = request.files['profimage']
+        second_image = request.files['secondimage']
     
         if prof_image:
             prof_image_filename = secure_filename(prof_image.filename)
@@ -160,6 +160,7 @@ def mypage():
             'email': user.e_mail,
             'prof_image': user.prof_image,
             'second_image': user.second_image,
+            'prof_comment': user.prof_comment,
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404

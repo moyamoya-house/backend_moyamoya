@@ -65,6 +65,7 @@ def create_user():
 
 # user単体取得
 @bp.route('/users/<int:id>',methods=['GET'])
+@jwt_required()
 def get_user(id):
     user = User.query.get(id)
     if user:
@@ -155,6 +156,7 @@ def mypage():
     user = User.query.get(current_user_id)
     if user:
         return jsonify({
+            'id': user.user_id,
             'name': user.user_name,
             'password': user.password,
             'email': user.e_mail,

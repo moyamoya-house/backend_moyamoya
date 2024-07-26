@@ -198,10 +198,11 @@ def get_moyamoya_all():
 
 # moyamoya create
 @bp.route('/moyamoya',methods=['POST'])
+@jwt_required
 def create_moyamoya():
     data = request.get_json()
     moyamoya_post = data.get('post')
-    moyamoya_user = data.get('user_id')
+    moyamoya_user = get_jwt_identity()
     
     if moyamoya_post and moyamoya_user:
         moyamoya = Moyamoya(

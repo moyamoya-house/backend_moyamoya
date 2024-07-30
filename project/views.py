@@ -198,7 +198,7 @@ def get_moyamoya_all():
 
 # moyamoya create
 @bp.route('/moyamoya',methods=['POST'])
-@jwt_required
+@jwt_required()
 def create_moyamoya():
     data = request.get_json()
     moyamoya_post = data.get('post')

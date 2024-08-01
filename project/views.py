@@ -236,6 +236,24 @@ def get_moyamoya(id):
     else:
         return jsonify({'error': 'moyamoya not found'}), 404
 
+# userごとの投稿
+@bp.route('/moyamoya_user',methods=["GET"])
+@jwt_required()
+def moyamoya_user():
+    moyamoya_user = get_jwt_identity()
+    moyamoyas = Moyamoya.query.filter_by(post_user_id=moyamoya_user)
+    moyamoya_all = []
+    for moyamoyas in moyamoyas:
+        moyamoya_data = {
+            'id': moyamoyas.moyamoya_id,
+            'post': moyamoyas.moyamoya_post,
+            'user_id': moyamoyas.post_user_id,
+            'created_at': moyamoyas.created_at
+        }
+        moyamoya_all.append(moyamoya_data)
+    return jsonify(moyamoya_all), 200
+
+
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])
 def update_moyamoya(id):

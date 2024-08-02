@@ -65,7 +65,6 @@ def create_user():
 
 # user単体取得
 @bp.route('/users/<int:id>',methods=['GET'])
-@jwt_required()
 def get_user(id):
     user = User.query.get(id)
     if user:
@@ -189,7 +188,7 @@ def get_moyamoya_all():
         moyamoya_data = {
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
-            'user': moyamoya.post_user_id,
+            'user_id': moyamoya.post_user_id,
             'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None
         }
         moyamoyas_data.append(moyamoya_data)

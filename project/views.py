@@ -373,6 +373,23 @@ def delete_pots(id):
         return jsonify({'error': 'pots not found'}), 404
 
 
+# follow crudAPI
+
+# follow 全件取得
+@bp.route('/follows', method=['GET'])
+def get_follows_all():
+    follow = Follow.query.all()
+    follow_data = []
+    
+    for follows in follow:
+        follows_data = {
+            'id': follows.follow_id,
+            'follower': follows.follower_user_id,
+            'followed': follows.followed_user_id
+        }
+        follow_data.append(follows_data)
+    return jsonify(follow_data)
+
 # chats crudAPI
 
 # chats 全件取得

@@ -390,6 +390,7 @@ def get_follows_all():
         follow_data.append(follows_data)
     return jsonify(follow_data)
 
+# createAPI
 @bp.route('/follow/<int:user_id>', methods=['POST'])
 @jwt_required()
 def create_follow(user_id):
@@ -411,6 +412,26 @@ def create_follow(user_id):
         'follower_user_id': friendship.follower_user_id,
         'followed_user_id': friendship.followed_user_id
     }),200
+
+
+# 自分のフォロワー
+@bp.route('/follower',methods=['GET'])
+@jwt_required()
+def get_follower():
+    user = get_jwt_identity()
+    
+    if user:
+        # フォローしているユーザーを取得
+        followers_count = Follow.query.filter_by(followed_user_id=user).count()
+        # フォロー中のユーザーをカウント
+        following_count = Follow.query.filter_by(follower_user_id=user).count()
+    
+    return jsonify({
+        'follower':followers_count,
+        'following': following_count,
+    })
+
+
 
 # chats crudAPI
 

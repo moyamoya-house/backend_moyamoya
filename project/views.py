@@ -376,7 +376,7 @@ def delete_pots(id):
 # follow crudAPI
 
 # follow 全件取得
-@bp.route('/follows', method=['GET'])
+@bp.route('/follows', methods=['GET'])
 def get_follows_all():
     follow = Follow.query.all()
     follow_data = []
@@ -390,7 +390,7 @@ def get_follows_all():
         follow_data.append(follows_data)
     return jsonify(follow_data)
 
-@bp.route('/follow/<int:user_id>', method=['POST'])
+@bp.route('/follow/<int:user_id>', methods=['POST'])
 @jwt_required()
 def create_follow(user_id):
     current_user_id = get_jwt_identity()

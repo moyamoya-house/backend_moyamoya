@@ -429,9 +429,20 @@ def get_follower():
     return jsonify({
         'follower':followers_count,
         'following': following_count,
-    })
+    }),200
 
-
+# 他者のフォロー
+@bp.route('/user_followers/<int:user_id>',methods=['GET'])
+def user_follower(user_id):
+    # フォローしているユーザーを取得
+    followers_count = Follow.query.filter_by(followed_user_id=user_id).count()
+    # フォロー中のユーザーをカウント
+    following_count = Follow.query.filter_by(follower_user_id=user_id).count()
+    
+    return jsonify({
+        'follower':followers_count,
+        'following': following_count,
+    }),200
 
 # chats crudAPI
 

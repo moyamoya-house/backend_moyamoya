@@ -390,6 +390,28 @@ def get_follows_all():
         follow_data.append(follows_data)
     return jsonify(follow_data)
 
+@bp.route('/follow/<int:user_id>', method=['POST'])
+@jwt_required()
+def create_follow(user_id):
+    current_user_id = get_jwt_identity()
+    # ユーザーをフォローしているか
+    user_friendship = Follow.query.filter_by(follower_user_id=current_user_id,followed_user_id=user_id).first()
+    if user_friendship:
+        return jsonify({'error': 'Followed User'}),500
+    
+    friendship = Follow(
+        follower_user_id = current_user_id,
+        followed_user_id = user_id,
+    )
+    
+    db.session.add(friendship)
+    db.session.commit()
+    return jsonify({
+        'id': friendship.follow_id,
+        'follower_user_id': friendship.follower_user_id,
+        'followed_user_id': friendship.followed_user_id
+    }),200
+
 # chats crudAPI
 
 # chats 全件取得

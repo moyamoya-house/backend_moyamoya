@@ -252,6 +252,23 @@ def moyamoya_user():
         moyamoya_all.append(moyamoya_data)
     return jsonify(moyamoya_all), 200
 
+# フォローユーザーの投稿
+@bp.route('/moyamoya_follow', methods=['GET'])
+def moyamoya_follow():
+    current_user = get_jwt_identity()
+    
+    if current_user:
+        following_user = Follow.query.filter_by(follower_user_id=current_user)
+        
+        post = Moyamoya.query.filter_by(post_user_id=following_user)
+    
+    return jsonify({
+            'id': post.moyamoya_id,
+            'post': post.moyamoya_post,
+            'user_id': post.post_user_id,
+            'created_at': post.created_at
+    }),200
+
 
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])
@@ -421,7 +438,7 @@ def get_follower():
     user = get_jwt_identity()
     
     if user:
-        # フォローしているユーザーを取得
+        # フォロワーユーザーを取得
         followers_count = Follow.query.filter_by(followed_user_id=user).count()
         # フォロー中のユーザーをカウント
         following_count = Follow.query.filter_by(follower_user_id=user).count()

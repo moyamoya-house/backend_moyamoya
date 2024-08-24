@@ -254,20 +254,28 @@ def moyamoya_user():
 
 # フォローユーザーの投稿
 @bp.route('/moyamoya_follow', methods=['GET'])
+@jwt_required()
 def moyamoya_follow():
     current_user = get_jwt_identity()
     
     if current_user:
-        following_user = Follow.query.filter_by(follower_user_id=current_user)
+        following_users = Follow.query.filter_by(follower_user_id=current_user).all()
+        following_user_ids = [follow.followed_user_id for follow in following_users]
         
-        post = Moyamoya.query.filter_by(post_user_id=following_user)
+        posts = Moyamoya.query.filter(Moyamoya.post_user_id.in_(following_user_ids)).all()
+        
+        result = []
+        for post in posts:
+            result.append({
+                'id': post.moyamoya_id,
+                'post': post.moyamoya_post,
+                'user_id': post.post_user_id,
+                'created_at': post.created_at
+            })
+        
+        return jsonify(result), 200
     
-    return jsonify({
-            'id': post.moyamoya_id,
-            'post': post.moyamoya_post,
-            'user_id': post.post_user_id,
-            'created_at': post.created_at
-    }),200
+    return jsonify({"msg": "User not found"}), 404
 
 
 # moyamoya 更新処理

@@ -34,7 +34,7 @@ def create_app(config_filename ="config.py"):
     app.config['JWT_SECRET_KEY'] = 'moyamoya_house'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
-    from project.models import User, Pots, Moyamoya, Chats, Follow
+    from project.models import User, Pots, Moyamoya, Chats, Follow, Nice
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))

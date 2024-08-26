@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from project import db, create_app
 from datetime import datetime
@@ -489,3 +489,43 @@ def get_chat_all():
     return jsonify(chats_data)
 
 
+
+# Nice crudAPI
+
+# Nice 全件取得
+@bp.route('nice_all',methods=['GET'])
+def nice_all():
+    nice = Nice.query.all()
+    
+    nices_data = []
+    
+    for nices in nice:
+        nice_data = {
+            'id': nices.nice_id,
+            'post_id': nices.post_id,
+            'user_id': nices.user_id,
+            'count': nices.count
+        }
+        nices_data.append(nice_data)
+    return jsonify(nices_data),200
+
+# Nice create
+@bp.route('/nice/<int:post_id>',methods=['GET'])
+@jwt_required()
+def nice(post_id):
+    current_user = get_jwt_identity()
+    count = Nice.count
+    nice = Nice(
+        post_id=post_id,
+        user_id=current_user,
+        count = count + 1,
+    )
+    db.session.add(nice)
+    db.session.commit()
+    
+    return jsonify({
+        'nice_id': nice.nice_id,
+        'post_id': nice.post_id,
+        'user_id': nice.user_id,
+        'count': nice.count
+    }),200

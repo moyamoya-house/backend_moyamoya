@@ -509,22 +509,21 @@ def nice_all():
     return jsonify(nices_data),200
 
 # Nice create
-@bp.route('/nice/<int:post_id>',methods=['GET'])
+@bp.route('/nice/<int:post_id>',methods=['POST'])
 @jwt_required()
 def nice(post_id):
     current_user = get_jwt_identity()
-    count = Nice.count
-    nice = Nice(
-        post_id=post_id,
-        user_id=current_user,
-        count = count + 1,
-    )
-    db.session.add(nice)
+    nice = Nice.query.filter_by(post_id=post_id, user_id=current_user).first()
+    
+    # すでにいいねしている場合
+    if nice:
+        db.session.delete(nice)
+        liked= False
+    else:
+        # いいねしていない場合
+        new_nice = Nice(post_id=post_id,user_id=current_user)
+        db.session.add(new_nice)
+        liked=True
     db.session.commit()
     
-    return jsonify({
-        'nice_id': nice.nice_id,
-        'post_id': nice.post_id,
-        'user_id': nice.user_id,
-        'count': nice.count
-    }),200
+    return jsonify({"liked": liked}),200

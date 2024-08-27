@@ -69,11 +69,20 @@ class Pots(db.Model):
 
 # Niceテーブル
 class Nice(db.Model):
+    __tablename__ = 'nice'
+
     nice_id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('moyamoya.moyamoya_id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
-    count = db.Column(db.Integer, nullable=True)
-    
+
     # relation
-    post = db.relationship('Moyamoya', foreign_keys=[post_id])
-    user = db.relationship('User', foreign_keys=[user_id])
+    post = db.relationship('Moyamoya', foreign_keys=[post_id], backref=db.backref('nices', lazy=True))
+    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('nices', lazy=True))
+
+    # Unique constraint to prevent duplicate likes by the same user on the same post
+    __table_args__ = (
+        db.UniqueConstraint('post_id', 'user_id', name='unique_user_post_like'),
+    )
+
+    def __repr__(self):
+        return f"<Nice(nice_id={self.nice_id}, post_id={self.post_id}, user_id={self.user_id})>"

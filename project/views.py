@@ -493,7 +493,7 @@ def get_chat_all():
 # Nice crudAPI
 
 # Nice 全件取得
-@bp.route('nice_all',methods=['GET'])
+@bp.route('/nice_all',methods=['GET'])
 def nice_all():
     nice = Nice.query.all()
     
@@ -503,8 +503,7 @@ def nice_all():
         nice_data = {
             'id': nices.nice_id,
             'post_id': nices.post_id,
-            'user_id': nices.user_id,
-            'count': nices.count
+            'user_id': nices.user_id
         }
         nices_data.append(nice_data)
     return jsonify(nices_data),200

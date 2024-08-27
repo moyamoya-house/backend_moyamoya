@@ -86,3 +86,15 @@ class Nice(db.Model):
 
     def __repr__(self):
         return f"<Nice(nice_id={self.nice_id}, post_id={self.post_id}, user_id={self.user_id})>"
+    
+
+class Bookmark(db.Model):
+    __tablename__ = 'bookmark'
+    
+    bookmark_id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('moyamoya.moyamoya_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+
+    # relation
+    post = db.relationship('Moyamoya', foreign_keys=[post_id])
+    user = db.relationship('User', foreign_keys=[user_id])

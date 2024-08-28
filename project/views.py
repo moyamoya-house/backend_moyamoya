@@ -544,3 +544,16 @@ def bookmark(post_id):
     db.session.commit()
     
     return jsonify({'message': 'Bookmark added'}),201
+
+# user毎のbookmark取得
+@bp.route('/bookmarks',methods=['GET'])
+@jwt_required()
+def bookmarks():
+    current_user=get_jwt_identity()
+    
+    bookmarks = Bookmark.query.filter_by(user_id=current_user).all()
+    
+    bookmarks_post = [bookmark.post_id for bookmark in bookmarks]
+    
+    return jsonify({'bookmarks': bookmarks_post}),200
+

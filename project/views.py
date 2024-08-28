@@ -528,6 +528,16 @@ def nice(post_id):
     
     return jsonify({"liked": liked}),200
 
+# 特定のいいね取得
+@bp.route('/nice/<int:post_id>', methods=['GET'])
+@jwt_required()
+def get_nice_status(post_id):
+    current_user = get_jwt_identity()
+    nice = Nice.query.filter_by(post_id=post_id, user_id=current_user).first()
+    liked = nice is not None
+    return jsonify({'liked': liked}),200
+
+
 # Bookmark crudAPI
 
 # create

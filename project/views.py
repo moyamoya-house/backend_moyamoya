@@ -535,15 +535,17 @@ def nice(post_id):
 @jwt_required()
 def bookmark(post_id):
     current_user = get_jwt_identity()
-    
-    new_bookmark = Bookmark(
-        post_id=post_id,
-        user_id=current_user
-    )
-    db.session.add(new_bookmark)
-    db.session.commit()
-    
-    return jsonify({'message': 'Bookmark added'}),201
+    bookmark = Bookmark.query.filter_by(post_id=post_id, user_id=current_user).first()
+
+    if bookmark:
+        db.session.delete(bookmark)
+        db.session.commit()
+        return jsonify({'message': 'Bookmark removed'}), 200
+    else:
+        new_bookmark = Bookmark(post_id=post_id, user_id=current_user)
+        db.session.add(new_bookmark)
+        db.session.commit()
+        return jsonify({'message': 'Bookmark added'}), 201
 
 # user毎のbookmark取得
 @bp.route('/bookmarks',methods=['GET'])

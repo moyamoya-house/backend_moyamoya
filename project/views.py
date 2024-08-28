@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots, Nice
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
 from project import db, create_app
 from datetime import datetime
@@ -527,3 +527,20 @@ def nice(post_id):
     db.session.commit()
     
     return jsonify({"liked": liked}),200
+
+# Bookmark crudAPI
+
+# create
+@bp.route('/bookmark/<int:post_id>',methods=['POST'])
+@jwt_required()
+def bookmark(post_id):
+    current_user = get_jwt_identity()
+    
+    new_bookmark = Bookmark(
+        post_id=post_id,
+        user_id=current_user
+    )
+    db.session.add(new_bookmark)
+    db.session.commit()
+    
+    return jsonify({'message': 'Bookmark added'}),201

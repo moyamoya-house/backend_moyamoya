@@ -277,6 +277,31 @@ def moyamoya_follow():
     
     return jsonify({"msg": "User not found"}), 404
 
+# 保存した投稿の取得
+@bp.route('/moyamoya_bookmark', methods=['GET'])
+@jwt_required()
+def moyamoya_bookmark():
+    current_user = get_jwt_identity()
+    
+    if current_user:
+        bookmark_user = Bookmark.query.filter_by(user_id=current_user).all()
+        bookmark_user_ids = [bookmark.user_id for bookmark in bookmark_user]
+        
+        posts = Moyamoya.query.filter(Moyamoya.post_user_id.in_(bookmark_user_ids)).all()
+        
+        result = []
+        
+        for post in posts:
+            result.append({
+                'id': post.moyamoya_id,
+                'post': post.moyamoya_post,
+                'user_id': post.post_user_id,
+                'created_at': post.created_at
+            })
+        
+        return jsonify(result),200
+    
+    return jsonify({ 'message': 'Bookmark not found' }),404
 
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])

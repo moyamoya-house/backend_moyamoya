@@ -185,11 +185,13 @@ def get_moyamoya_all():
     moyamoyas_data = []
     
     for moyamoya in moyamoya_all:
+        nice_count = Nice.query.filter_by(post_id=moyamoya.moyamoya_id).count()
         moyamoya_data = {
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
-            'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None
+            'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
+            'count': nice_count,
         }
         moyamoyas_data.append(moyamoya_data)
     return jsonify(moyamoyas_data), 200
@@ -229,7 +231,7 @@ def get_moyamoya(id):
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
-            'created_at': moyamoya.created_at
+            'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
         }
         return jsonify(moyamoya_data), 200
     else:
@@ -243,11 +245,13 @@ def moyamoya_user():
     moyamoyas = Moyamoya.query.filter_by(post_user_id=moyamoya_user)
     moyamoya_all = []
     for moyamoyas in moyamoyas:
+        nice_count = Nice.query.filter_by(post_id=moyamoyas.moyamoya_id).count()
         moyamoya_data = {
             'id': moyamoyas.moyamoya_id,
             'post': moyamoyas.moyamoya_post,
             'user_id': moyamoyas.post_user_id,
-            'created_at': moyamoyas.created_at
+            'created_at': moyamoyas.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoyas.created_at else None,
+            'count': nice_count
         }
         moyamoya_all.append(moyamoya_data)
     return jsonify(moyamoya_all), 200
@@ -266,11 +270,13 @@ def moyamoya_follow():
         
         result = []
         for post in posts:
+            nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
             result.append({
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
-                'created_at': post.created_at
+                'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'count': nice_count
             })
         
         return jsonify(result), 200
@@ -294,11 +300,13 @@ def moyamoya_bookmark():
         result = []
         
         for post in posts:
+            nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
             result.append({
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
-                'created_at': post.created_at
+                'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'count': nice_count
             })
         
         return jsonify(result), 200

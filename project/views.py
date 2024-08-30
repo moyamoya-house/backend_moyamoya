@@ -284,10 +284,12 @@ def moyamoya_bookmark():
     current_user = get_jwt_identity()
     
     if current_user:
-        bookmark_user = Bookmark.query.filter_by(user_id=current_user).all()
-        bookmark_user_ids = [bookmark.user_id for bookmark in bookmark_user]
+        # ログインしているユーザーがブックマークした投稿IDを取得
+        bookmark_posts = Bookmark.query.filter_by(user_id=current_user).all()
+        bookmark_post_ids = [bookmark.post_id for bookmark in bookmark_posts]
         
-        posts = Moyamoya.query.filter(Moyamoya.post_user_id.in_(bookmark_user_ids)).all()
+        # ブックマークされた投稿IDに基づいて投稿を取得
+        posts = Moyamoya.query.filter(Moyamoya.moyamoya_id.in_(bookmark_post_ids)).all()
         
         result = []
         
@@ -299,9 +301,9 @@ def moyamoya_bookmark():
                 'created_at': post.created_at
             })
         
-        return jsonify(result),200
+        return jsonify(result), 200
     
-    return jsonify({ 'message': 'Bookmark not found' }),404
+    return jsonify({ 'message': 'Bookmark not found' }), 404
 
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])

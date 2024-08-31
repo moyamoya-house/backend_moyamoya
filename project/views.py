@@ -329,7 +329,7 @@ def user_bookmark(user_id):
                 'id': posts.moyamoya_id,
                 'post': posts.moyamoya_post,
                 'user_id': posts.post_user_id,
-                'created_at': posts.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'created_at': posts.created_at.strftime("%Y-%m-%d %H:%M:%S") if posts.created_at else None,
                 'count': nice_count
             })
         

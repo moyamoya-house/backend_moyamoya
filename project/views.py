@@ -313,6 +313,31 @@ def moyamoya_bookmark():
     
     return jsonify({ 'message': 'Bookmark not found' }), 404
 
+# 他者ユーザー投稿一覧
+@bp.route('/user_bookmark/<int:user_id>', methods=['GET'])
+def user_bookmark(user_id):
+    user = User.query.get(user_id)
+    
+    if user:
+        post = Moyamoya.query.filter_by(post_user_id=user.user_id).all()
+        
+        result = []
+        
+        for posts in post:
+            nice_count = Nice.query.filter_by(post_id=posts.moyamoya_id).count()
+            result.append({
+                'id': posts.moyamoya_id,
+                'post': posts.moyamoya_post,
+                'user_id': posts.post_user_id,
+                'created_at': posts.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'count': nice_count
+            })
+        
+        return jsonify(result),200
+    
+    else:
+        return jsonify({ 'message': 'user not found' }),404
+
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])
 def update_moyamoya(id):

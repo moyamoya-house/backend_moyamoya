@@ -315,7 +315,7 @@ def moyamoya_bookmark():
 
 # 他者ユーザー投稿一覧
 @bp.route('/user_post/<int:user_id>', methods=['GET'])
-def user_bookmark(user_id):
+def user_post(user_id):
     user = User.query.get(user_id)
     
     if user:
@@ -337,6 +337,33 @@ def user_bookmark(user_id):
     
     else:
         return jsonify({ 'message': 'user not found' }),404
+
+# 他者ユーザーのブックマーク一覧
+@bp.route('/user_bookmark/<int:user_id>',methods=['GET'])
+def user_bookmark(user_id):
+    user = User.query.get(user_id)
+    
+    if user:
+        user_bookmark = Bookmark.query.filter_by(user_id=user.user_id).all()
+        bookmark_post_ids = [bookmark.post_id for bookmark in user_bookmark]
+        
+        posts = Moyamoya.query.filter(Moyamoya.moyamoya_id.in_(bookmark_post_ids)).all()
+        
+        result = []
+        
+        for post in posts:
+            nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
+            result.append({
+                'id': post.moyamoya_id,
+                'post': post.moyamoya_post,
+                'user_id': post.post_user_id,
+                'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'count': nice_count
+            })
+        
+        return jsonify(result),200
+    else:
+        return jsonify({'message':'Bookmark not found'}),404
 
 # moyamoya 更新処理
 @bp.route('/moyamoya/<int:id>',methods=['PUT'])

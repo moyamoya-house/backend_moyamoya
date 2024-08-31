@@ -314,7 +314,7 @@ def moyamoya_bookmark():
     return jsonify({ 'message': 'Bookmark not found' }), 404
 
 # 他者ユーザー投稿一覧
-@bp.route('/user_bookmark/<int:user_id>', methods=['GET'])
+@bp.route('/user_post/<int:user_id>', methods=['GET'])
 def user_bookmark(user_id):
     user = User.query.get(user_id)
     

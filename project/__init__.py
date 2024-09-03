@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_socketio import SocketIO
 import os
 from datetime import timedelta
 
@@ -17,6 +18,8 @@ cors = CORS()
 
 jwt = JWTManager()
 
+socket = SocketIO()
+
 def create_app(config_filename ="config.py"):
     app= Flask(__name__)
     app.config.from_pyfile(config_filename)
@@ -26,6 +29,7 @@ def create_app(config_filename ="config.py"):
     login_manager.init_app(app)
     cors.init_app(app)
     jwt.init_app(app)
+    socket.init_app(app)
 # Ensure the upload folder path is correct
     app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), 'project/static/prof_image/')
     app.config["UPLOAD_FOLDER_SECOND"] = os.path.join(os.getcwd(), 'project/static/second_prof_image')

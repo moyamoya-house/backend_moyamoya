@@ -575,7 +575,8 @@ def get_chat_all():
         chats_data.append(chat_data)
     return jsonify(chats_data)
 
-
+# create chatAPI
+@bp.route('/chat/<int:receiver_user_id>',methods=['POST'])
 
 # Nice crudAPI
 

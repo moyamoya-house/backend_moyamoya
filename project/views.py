@@ -577,6 +577,9 @@ def get_chat_all():
 
 # create chatAPI
 @bp.route('/chat/<int:receiver_user_id>',methods=['POST'])
+@jwt_required()
+def chat_create(receiver_user_id):
+    
 
 # Nice crudAPI
 

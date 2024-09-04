@@ -29,7 +29,7 @@ def create_app(config_filename ="config.py"):
     login_manager.init_app(app)
     cors.init_app(app)
     jwt.init_app(app)
-    socket.init_app(app)
+    socket.init_app(app, cors_allowed_origins="*")
 # Ensure the upload folder path is correct
     app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), 'project/static/prof_image/')
     app.config["UPLOAD_FOLDER_SECOND"] = os.path.join(os.getcwd(), 'project/static/second_prof_image')

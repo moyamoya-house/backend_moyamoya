@@ -2,7 +2,8 @@ from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
-from project import db, create_app
+from project import db, create_app,socket
+from flask_socketio import emit
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -575,11 +576,27 @@ def get_chat_all():
         chats_data.append(chat_data)
     return jsonify(chats_data)
 
-# create chatAPI
-@bp.route('/chat/<int:receiver_user_id>',methods=['POST'])
+# メッセージ送信、保存
+@socket.on('send_message')
 @jwt_required()
-def chat_create(receiver_user_id):
+def handle_send_message(data):
+    current_user = get_jwt_identity()
+    new_message = Chats(
+        message = data['message'],
+        send_user_id = current_user,
+        receiver_user_id = data['receiver_user_id'],
+        chat_at = datetime.utcnow()
+    )
     
+    db.session.add(new_message)
+    db.session.commit()
+    
+    emit('receive_message', {
+        'message': new_message.message,
+        'sender': new_message.sender.user_name,
+        'receiver': new_message.receiver.user_name,
+        'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
+    }, broadcast=True)
 
 # Nice crudAPI
 

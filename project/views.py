@@ -1,9 +1,10 @@
+from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
 from project import db, create_app,socket
-from flask_socketio import emit
+from flask_socketio import emit, disconnect
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -576,27 +577,35 @@ def get_chat_all():
         chats_data.append(chat_data)
     return jsonify(chats_data)
 
-# メッセージ送信、保存
+@socket.on('connect')
+def connect():
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        print(f"User {user_id} connected.")
+    except Exception as e:
+        print("Token not provided or invalid", e)
+        return False  # Reject the connection
+
 @socket.on('send_message')
-@jwt_required()
 def handle_send_message(data):
-    current_user = get_jwt_identity()
     new_message = Chats(
-        message = data['message'],
-        send_user_id = current_user,
-        receiver_user_id = data['receiver_user_id'],
-        chat_at = datetime.utcnow()
+        message=data['message'],
+        send_user_id=data['send_user_id'],  
+        receiver_user_id=data['receiver_user_id'],
+        chat_at=datetime.utcnow()
     )
-    
+
     db.session.add(new_message)
     db.session.commit()
-    
+
     emit('receive_message', {
         'message': new_message.message,
         'sender': new_message.sender.user_name,
         'receiver': new_message.receiver.user_name,
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
     }, broadcast=True)
+
 
 # Nice crudAPI
 

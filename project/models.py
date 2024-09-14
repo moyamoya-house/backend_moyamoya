@@ -62,8 +62,8 @@ class Chats(db.Model):
 class Pots(db.Model):
     pots_id = db.Column(db.Integer, primary_key=True)
     audio_file = db.Column(db.String(255), nullable=False)
-    emotion_score = db.Column(DOUBLE, nullable=True)
-    stress_level = db.Column(DOUBLE, nullable=True)
+    emotion_score = db.Column(db.Float, nullable=True)
+    stress_level = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     pots_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
 

@@ -414,19 +414,20 @@ def get_pots_all():
 
 # pots create
 @bp.route('/pots',methods=['POST'])
+@jwt_required()
 def create_pots():
+    current_user = get_jwt_identity()
     data = request.get_json()
     audio = data.get('audio')
     emotion = data.get('emotion')
     stress = data.get('stress')
-    user_id = data.get('user_id')
     
-    if audio and emotion and stress and user_id:
+    if audio and emotion and stress and current_user:
         pots = Pots(
             audio_file = audio,
             emotion_score = emotion,
             stress_level = stress,
-            pots_user_id = user_id
+            pots_user_id = current_user
         )
         db.session.add(pots)
         db.session.commit()

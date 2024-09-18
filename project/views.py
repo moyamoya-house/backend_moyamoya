@@ -188,6 +188,7 @@ def get_moyamoya_all():
     
     for moyamoya in moyamoya_all:
         nice_count = Nice.query.filter_by(post_id=moyamoya.moyamoya_id).count()
+        print(nice_count)
         moyamoya_data = {
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
@@ -636,15 +637,16 @@ def nice(post_id):
     # すでにいいねしている場合
     if nice:
         db.session.delete(nice)
+        db.session.commit()
         liked= False
+        return jsonify({"liked": liked}),201
     else:
         # いいねしていない場合
         new_nice = Nice(post_id=post_id,user_id=current_user)
         db.session.add(new_nice)
+        db.session.commit()
         liked=True
-    db.session.commit()
-    
-    return jsonify({"liked": liked}),200
+        return jsonify({"liked": liked}),200
 
 # 特定のいいね取得
 @bp.route('/nice/<int:post_id>', methods=['GET'])

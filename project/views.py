@@ -593,20 +593,26 @@ def get_chat_all():
     return jsonify(chats_data)
 
 @socket.on('connect')
-def connect():
+def handle_connect():
     try:
-        verify_jwt_in_request()
-        user_id = get_jwt_identity()
-        print(f"User {user_id} connected.")
+        # クエリパラメータからトークンを取得
+        token = request.args.get('token')  # 'auth'ではなく、request.argsから取得
+        if token:
+            # トークンをデコードしてユーザーを確認
+            decoded_token = decode_token(token)
+            user_identity = decoded_token['sub']
+        else:
+            raise Exception('No token provided')
     except Exception as e:
-        print("Token not provided or invalid", e)
-        return False  # Reject the connection
+        print(f'Connection failed: {str(e)}')
+        disconnect()
+
 
 @socket.on('send_message')
 def handle_send_message(data):
     new_message = Chats(
         message=data['message'],
-        send_user_id=data['send_user_id'],  
+        send_user_id=data['send_user_id']['id'],  
         receiver_user_id=data['receiver_user_id'],
         chat_at=datetime.utcnow()
     )
@@ -619,7 +625,7 @@ def handle_send_message(data):
         'sender': new_message.sender.user_name,
         'receiver': new_message.receiver.user_name,
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
-    }, broadcast=True)
+    }, broadcast=True),201
 
 
 # Nice crudAPI

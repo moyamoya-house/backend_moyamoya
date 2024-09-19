@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
 import os
 from datetime import timedelta
+import eventlet
 
 db = SQLAlchemy()
 

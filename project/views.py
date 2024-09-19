@@ -560,6 +560,19 @@ def user_follower(user_id):
         'following': following_count,
     }),200
 
+@bp.route('/follow_type/<int:user_id>', methods=["GET"])
+@jwt_required()
+def follow_type(user_id):
+    current_user = get_jwt_identity()
+    
+    follow_relation = Follow.query.filter_by(followed_user_id=user_id, follower_user_id=current_user).first()
+    
+    if follow_relation:
+        return jsonify({"isFollower": True}), 200
+    else:
+        return jsonify({"isFollower": False}), 200
+
+
 # chats crudAPI
 
 # chats 全件取得

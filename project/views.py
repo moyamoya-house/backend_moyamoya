@@ -628,6 +628,34 @@ def handle_send_message(data):
     }, broadcast=True),201
 
 
+@bp.route('/chat_send')
+@jwt_required()
+def chat_send():
+    
+    current_user = get_jwt_identity()
+    
+    user_chat = Chats.query.filter((Chats.send_user_id == current_user) | (Chats.receiver_user_id == current_user))
+    
+    last_message = {}
+    for chat in user_chat:
+        other_user_id = chat.sender_user_id if chat.sender_user_id != current_user else chat.receiver_user_id
+        if other_user_id not in last_message or chat.chat_at > last_message[other_user_id]['timestamp']:
+            last_message[other_user_id]={
+                'timestamp': chat.chat_at,
+                'message': chat.message,
+            }
+    sorted_last_message = dict(sorted(last_message.items(), key=lambda x: x[1]['timestamp'], reverse=True))
+    users = {}
+    for user_id in sorted_last_message.keys():
+        user = User.query.get(user_id)
+        users[user_id] = user
+        
+    return jsonify({
+        "message": last_message,
+        "user": users,
+        }),200
+
+
 # Nice crudAPI
 
 # Nice 全件取得

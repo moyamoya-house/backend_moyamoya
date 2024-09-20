@@ -628,32 +628,46 @@ def handle_send_message(data):
     }, broadcast=True),201
 
 
-@bp.route('/chat_send')
+@bp.route('/chat_send', methods=['GET'])
 @jwt_required()
 def chat_send():
-    
     current_user = get_jwt_identity()
     
+    # ユーザーとのチャット履歴を取得
     user_chat = Chats.query.filter((Chats.send_user_id == current_user) | (Chats.receiver_user_id == current_user))
     
     last_message = {}
     for chat in user_chat:
-        other_user_id = chat.sender_user_id if chat.sender_user_id != current_user else chat.receiver_user_id
+        # 相手のユーザーIDを取得
+        other_user_id = chat.send_user_id if chat.send_user_id != current_user else chat.receiver_user_id
+        # 相手のIDに対応する最新のメッセージを更新
         if other_user_id not in last_message or chat.chat_at > last_message[other_user_id]['timestamp']:
-            last_message[other_user_id]={
+            last_message[other_user_id] = {
                 'timestamp': chat.chat_at,
                 'message': chat.message,
+                'send_user_id': chat.send_user_id,
+                'receiver_user_id': chat.receiver_user_id,
             }
-    sorted_last_message = dict(sorted(last_message.items(), key=lambda x: x[1]['timestamp'], reverse=True))
-    users = {}
-    for user_id in sorted_last_message.keys():
+    
+    # 最新のメッセージをタイムスタンプ順にソート
+    sorted_last_message = sorted(last_message.items(), key=lambda x: x[1]['timestamp'], reverse=True)
+    
+    result = []
+    for user_id, message_info in sorted_last_message:
         user = User.query.get(user_id)
-        users[user_id] = user
-        
-    return jsonify({
-        "message": last_message,
-        "user": users,
-        }),200
+        if user:
+            result.append({
+                'user_id': user.user_id,
+                'user_name': user.user_name,
+                'prof_image': user.prof_image,
+                'message': message_info['message'],
+                'timestamp': message_info['timestamp'],
+                'send_user_id': message_info['send_user_id'],
+                'receiver_user_id': message_info['receiver_user_id'],
+            })
+    
+    return jsonify(result), 200
+
 
 
 # Nice crudAPI

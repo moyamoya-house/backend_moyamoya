@@ -627,46 +627,32 @@ def handle_send_message(data):
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
     }, broadcast=True),201
 
-
 @bp.route('/chat_send', methods=['GET'])
 @jwt_required()
 def chat_send():
     current_user = get_jwt_identity()
+    receiver_id = request.args.get('receiverId')
+
+    if not receiver_id:
+        return jsonify({"error": "receiverId is required"}), 400
     
-    # ユーザーとのチャット履歴を取得
-    user_chat = Chats.query.filter((Chats.send_user_id == current_user) | (Chats.receiver_user_id == current_user))
-    
-    last_message = {}
-    for chat in user_chat:
-        # 相手のユーザーIDを取得
-        other_user_id = chat.send_user_id if chat.send_user_id != current_user else chat.receiver_user_id
-        # 相手のIDに対応する最新のメッセージを更新
-        if other_user_id not in last_message or chat.chat_at > last_message[other_user_id]['timestamp']:
-            last_message[other_user_id] = {
-                'timestamp': chat.chat_at,
-                'message': chat.message,
-                'send_user_id': chat.send_user_id,
-                'receiver_user_id': chat.receiver_user_id,
-            }
-    
-    # 最新のメッセージをタイムスタンプ順にソート
-    sorted_last_message = sorted(last_message.items(), key=lambda x: x[1]['timestamp'], reverse=True)
-    
+    # 特定の相手ユーザーとのチャット履歴を取得
+    user_chat = Chats.query.filter(
+        ((Chats.send_user_id == current_user) & (Chats.receiver_user_id == receiver_id)) |
+        ((Chats.send_user_id == receiver_id) & (Chats.receiver_user_id == current_user))
+    ).order_by(Chats.chat_at.asc()).all()
+
     result = []
-    for user_id, message_info in sorted_last_message:
-        user = User.query.get(user_id)
-        if user:
-            result.append({
-                'user_id': user.user_id,
-                'user_name': user.user_name,
-                'prof_image': user.prof_image,
-                'message': message_info['message'],
-                'timestamp': message_info['timestamp'],
-                'send_user_id': message_info['send_user_id'],
-                'receiver_user_id': message_info['receiver_user_id'],
-            })
+    for chat in user_chat:
+        result.append({
+            'message': chat.message,
+            'timestamp': chat.chat_at,
+            'send_user_id': chat.send_user_id,
+            'receiver_user_id': chat.receiver_user_id,
+        })
     
     return jsonify(result), 200
+
 
 
 

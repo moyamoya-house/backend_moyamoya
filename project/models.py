@@ -26,6 +26,7 @@ class User(db.Model, UserMixin):
 class Moyamoya(db.Model):
     moyamoya_id = db.Column(db.Integer, primary_key=True)
     moyamoya_post = db.Column(db.String(255), nullable=False)
+    hash_tag = db.Column(db.String(255), nullable=True)
     post_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

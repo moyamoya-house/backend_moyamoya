@@ -193,6 +193,7 @@ def get_moyamoya_all():
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
+            'tag': moyamoya.hash_tag,
             'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
             'count': nice_count,
         }
@@ -206,12 +207,14 @@ def get_moyamoya_all():
 def create_moyamoya():
     data = request.get_json()
     moyamoya_post = data.get('post')
+    hash_tag = data.get('tag')
     moyamoya_user = get_jwt_identity()
     
     if moyamoya_post and moyamoya_user:
         moyamoya = Moyamoya(
             moyamoya_post = moyamoya_post,
             post_user_id = moyamoya_user,
+            hash_tag = hash_tag,
             created_at = datetime.utcnow()
         )
         db.session.add(moyamoya)
@@ -220,6 +223,7 @@ def create_moyamoya():
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
+            'hash_tag': moyamoya.hash_tag,
             'created_at': moyamoya.created_at
         }), 201
     else:
@@ -234,6 +238,7 @@ def get_moyamoya(id):
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
+            'hash_tag': moyamoya.hash_tag,
             'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
         }
         return jsonify(moyamoya_data), 200
@@ -253,6 +258,7 @@ def moyamoya_user():
             'id': moyamoyas.moyamoya_id,
             'post': moyamoyas.moyamoya_post,
             'user_id': moyamoyas.post_user_id,
+            'hash_tag': moyamoyas.hash_tag,
             'created_at': moyamoyas.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoyas.created_at else None,
             'count': nice_count
         }
@@ -278,6 +284,7 @@ def moyamoya_follow():
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
+                'hash_tag': post.hash_tag,
                 'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
                 'count': nice_count
             })
@@ -308,6 +315,7 @@ def moyamoya_bookmark():
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
+                'hash_tag': post.hash_tag,
                 'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
                 'count': nice_count
             })

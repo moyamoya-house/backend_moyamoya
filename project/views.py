@@ -9,6 +9,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
+import re
 
 bp = Blueprint('main',__name__)
 
@@ -207,16 +208,18 @@ def get_moyamoya_all():
 def create_moyamoya():
     data = request.get_json()
     moyamoya_post = data.get('post')
-    hash_tag = data.get('tag')
     moyamoya_user = get_jwt_identity()
     
     if moyamoya_post and moyamoya_user:
         moyamoya = Moyamoya(
             moyamoya_post = moyamoya_post,
             post_user_id = moyamoya_user,
-            hash_tag = hash_tag,
             created_at = datetime.utcnow()
         )
+        
+        hashtags = re.findall(r'#\w+',moyamoya_post)
+        
+        moyamoya.hash_tag = ' '.join(hashtags)
         db.session.add(moyamoya)
         db.session.commit()
         return jsonify({

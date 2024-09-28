@@ -405,7 +405,7 @@ def delete_moyamoya(id):
         return jsonify({'error': 'moyamoya not found'}), 404
 
 # hash_tagに基づいた投稿一覧を取得・表示
-@bp.route('/hashtags/<hashtag>',methods=['GET'])
+@bp.route('/hashtags/<string:hashtag>',methods=['GET'])
 def get_hashtag_post(hashtag):
     try:
         posts = Moyamoya.query.filter(Moyamoya.moyamoya_post.ilike(f'%#{hashtag}%')).all()

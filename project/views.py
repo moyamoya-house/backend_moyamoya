@@ -408,7 +408,7 @@ def delete_moyamoya(id):
 @bp.route('/hashtags/<string:hashtag>',methods=['GET'])
 def get_hashtag_post(hashtag):
     try:
-        posts = Moyamoya.query.filter(Moyamoya.moyamoya_post.ilike(f'%#{hashtag}%')).all()
+        posts = Moyamoya.query.filter(Moyamoya.hash_tag.like(f'%#{hashtag}%')).all()
         result = [post.to_dict() for post in posts]
         return jsonify(result),200
     except Exception as e:

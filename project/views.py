@@ -667,7 +667,7 @@ def chat_send():
     for chat in user_chat:
         result.append({
             'message': chat.message,
-            'timestamp': chat.chat_at,
+            'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
             'send_user_id': chat.send_user_id,
             'receiver_user_id': chat.receiver_user_id,
         })

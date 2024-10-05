@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
 from project import db, create_app,socket
 from flask_socketio import emit, disconnect

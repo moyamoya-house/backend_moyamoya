@@ -18,6 +18,7 @@ class User(db.Model, UserMixin):
     moyamoya = db.relationship('Moyamoya', backref='user', lazy=True)
     sent_messages = db.relationship('Chats', foreign_keys='Chats.send_user_id', backref='sender_by', lazy=True)
     received_messages = db.relationship('Chats', foreign_keys='Chats.receiver_user_id', backref='receiver_by', lazy=True)
+    notification = db.relationship('Notification', foreign_keys='Notification.user_id', backref='notify', lazy=True)
     
     def get_id(self):
         return str(self.user_id)
@@ -99,3 +100,11 @@ class Bookmark(db.Model):
     # relation
     post = db.relationship('Moyamoya', foreign_keys=[post_id])
     user = db.relationship('User', foreign_keys=[user_id])
+
+
+class Notification(db.Model):
+    notification_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'),nullable=False)
+    notification = db.Column(db.String(255),nullable=False)
+    create_at = db.Column(db.DateTime, nullable=False)
+

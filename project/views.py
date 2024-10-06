@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
 import re
+from project.notification import create_notifition
 
 bp = Blueprint('main',__name__)
 
@@ -543,6 +544,10 @@ def create_follow(user_id):
     )
     
     db.session.add(friendship)
+    db.session.commit()
+    # メッセージ生成
+    context = f'{current_user_id.user_name}があなたをフォローしました'
+    create_notifition(user_id,context)
     db.session.commit()
     return jsonify({
         'id': friendship.follow_id,

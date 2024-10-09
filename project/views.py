@@ -638,7 +638,7 @@ def handle_connect():
 def handle_send_message(data):
     new_message = Chats(
         message=data['message'],
-        send_user_id=data['send_user_id']['id'],  
+        send_user_id=data['send_user_id'],  
         receiver_user_id=data['receiver_user_id'],
         chat_at=datetime.utcnow()
     )
@@ -648,7 +648,8 @@ def handle_send_message(data):
     
     context = f'{new_message.sender.user_name}があなたに新しいチャットを送信しました。'
     create_notifition(new_message.receiver.user_id,context)
-
+    db.session.commit()
+    
     emit('receive_message', {
         'message': new_message.message,
         'sender': new_message.sender.user_name,

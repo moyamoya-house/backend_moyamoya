@@ -645,6 +645,9 @@ def handle_send_message(data):
 
     db.session.add(new_message)
     db.session.commit()
+    
+    context = f'{new_message.sender.user_name}があなたに新しいチャットを送信しました。'
+    create_notifition(new_message.receiver.user_id,context)
 
     emit('receive_message', {
         'message': new_message.message,

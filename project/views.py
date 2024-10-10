@@ -636,6 +636,9 @@ def handle_connect():
 
 @socket.on('send_message')
 def handle_send_message(data):
+    # 送信者のユーザー情報を取得
+    sender = User.query.get(data['send_user_id'])
+    receiver = User.query.get(data['receiver_user_id'])
     new_message = Chats(
         message=data['message'],
         send_user_id=data['send_user_id'],  
@@ -644,10 +647,9 @@ def handle_send_message(data):
     )
 
     db.session.add(new_message)
-    db.session.commit()
     
-    context = f'{new_message.sender.user_name}があなたに新しいチャットを送信しました。'
-    create_notifition(new_message.receiver.user_id,context)
+    context = f'{sender.user_name}があなたに新しいチャットを送信しました。'
+    create_notifition(receiver.user_id,context)
     db.session.commit()
     
     emit('receive_message', {

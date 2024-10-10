@@ -768,3 +768,14 @@ def bookmarks():
     
     return jsonify({'bookmarks': bookmarks_post}),200
 
+
+# notification crud
+
+@bp.route('/notification',methods=['GET'])
+@jwt_required()
+def notification():
+    current_user = get_jwt_identity()
+    
+    notification = Notification.query.filter_by(user_id=current_user).all()
+    
+    return jsonify({'notification': notification}),200

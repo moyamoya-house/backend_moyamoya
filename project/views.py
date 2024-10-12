@@ -777,5 +777,14 @@ def notification():
     current_user = get_jwt_identity()
     
     notification = Notification.query.filter_by(user_id=current_user).all()
+    notification_data = []
     
-    return jsonify({'notification': notification}),200
+    for noti in notification:
+        notifications_data = {
+            'id': noti.notification_id,
+            'notification': noti.notification,
+            'create_at': noti.create_at,
+        }
+        notification_data.append(notifications_data)
+    
+    return jsonify({'notification': notification_data}),200

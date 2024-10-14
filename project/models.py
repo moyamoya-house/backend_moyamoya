@@ -48,12 +48,28 @@ class Follow(db.Model):
     corrent_user = db.relationship('User', foreign_keys=[follower_user_id], backref='friends')
     friend = db.relationship('User', foreign_keys=[followed_user_id])
 
+# GroupChatテーブル
+class GroupChat(db.Model):
+    __tablename__ = 'group_chat'
+    group_id = db.Column(db.Integer, primary_key=True)
+    group_name = db.Column(db.String(255),nullable=False)
+    create_at = db.Column(db.DateTime, default=datetime.utcnow)
+    create_by = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+
+
+# GroupMemberテーブル
+class GroupMember(db.Model):
+    group_member_id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chat.group_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+
 # chatsテーブル
 class Chats(db.Model):
     chat_id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(255), nullable=False)
     send_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
-    receiver_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    receiver_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chat.group_id'), nullable=True)
     chat_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # relation

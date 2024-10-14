@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
 from project import db, create_app,socket
 from flask_socketio import emit, disconnect
@@ -685,8 +685,31 @@ def chat_send():
     
     return jsonify(result), 200
 
-
-
+# GroupChat作成
+@bp.route('/group', methods=['POST'])
+@jwt_required()
+def create_group():
+    current_user = get_jwt_identity()
+    data = request.get_json()
+    group_name = data.get('group_name')
+    user_ids = data.get('user_ids',[])
+    
+    if not group_name or not user_ids:
+        return jsonify({'error': 'グループ名とメンバーは必須です。'}),400
+    
+    new_group = GroupChat(group_name=group_name, create_by=current_user)
+    db.session.add(new_group)
+    db.session.commit()
+    
+    
+    # メンバー登録
+    for user_id in user_ids:
+        new_member = GroupMember(group_id=new_group.group_id, user_id=user_id)
+        db.session.add(new_member)
+    
+    db.session.commit()
+    
+    return jsonify({'message': 'グループが作成されました。'}),201
 
 # Nice crudAPI
 

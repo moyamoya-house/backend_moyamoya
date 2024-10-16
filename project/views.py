@@ -32,26 +32,30 @@ def get_users():
     return jsonify(user_data), 200
 
 # user createメソッド
-@bp.route('/users',methods=['POST'])
+@bp.route('/users', methods=['POST'])
 def create_user():
     name = request.form.get('username')
     password = request.form.get('password')
     email = request.form.get('email')
-    prof_image = request.files['profimage']
+    prof_image = request.files.get('profimage')
     
-    prof_image_filename = secure_filename(prof_image.filename)
-    prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'],prof_image_filename))
+    # 画像がアップロードされていない場合のデフォルト設定
+    if prof_image:
+        prof_image_filename = secure_filename(prof_image.filename)
+        prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], prof_image_filename))
+    else:
+        prof_image_filename = None  # 画像がない場合はNoneを設定
     
     if password:
         hash_password = generate_password_hash(password, method='sha256')
     
     if name and password and email:
         user = User(
-            user_name = name,
-            password = hash_password,
-            e_mail = email,
-            prof_image = prof_image_filename,
-            created_at = datetime.utcnow()
+            user_name=name,
+            password=hash_password,
+            e_mail=email,
+            prof_image=prof_image_filename,  # prof_image_filename がNoneでもOK
+            created_at=datetime.utcnow()
         )
         db.session.add(user)
         db.session.commit()

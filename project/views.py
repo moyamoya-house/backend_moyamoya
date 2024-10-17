@@ -715,6 +715,26 @@ def create_group():
     
     return jsonify({'message': 'グループが作成されました。'}),201
 
+@bp.route('/groupchat')
+@jwt_required()
+def my_group():
+    current_user = get_jwt_identity()
+    
+    user_group = db.session.query(GroupChat).join(GroupMember).filter(GroupMember.user_id == current_user).all()
+    
+    group_list = []
+    
+    for group in user_group:
+        group_data = {
+            'group_id': group.group_id,
+            'group_name': group.group_name,
+            'create_by': group.create_by,
+            'create_at': group.create_at
+        }
+        group_list.append(group_data)
+    
+    return jsonify(group_list),200
+
 # Nice crudAPI
 
 # Nice 全件取得

@@ -715,7 +715,7 @@ def create_group():
     
     return jsonify({'message': 'グループが作成されました。'}),201
 
-@bp.route('/groupchat')
+@bp.route('/groupchat',methods=['GET'])
 @jwt_required()
 def my_group():
     current_user = get_jwt_identity()

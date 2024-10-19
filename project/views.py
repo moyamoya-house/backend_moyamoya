@@ -640,28 +640,38 @@ def handle_connect():
 
 @socket.on('send_message')
 def handle_send_message(data):
-    # 送信者のユーザー情報を取得
-    sender = User.query.get(data['send_user_id'])
-    receiver = User.query.get(data['receiver_user_id'])
-    new_message = Chats(
-        message=data['message'],
-        send_user_id=data['send_user_id'],  
-        receiver_user_id=data['receiver_user_id'],
-        chat_at=datetime.utcnow()
-    )
-
-    db.session.add(new_message)
+    if 'group_id' in data:
+        # グループチャットの場合
+        group = GroupChat.query.get(data['group_id'])
+        if not group:
+            return  # グループが存在しない場合のエラーハンドリング
+        new_message = Chats(
+            message=data['message'],
+            send_user_id=data['send_user_id'],
+            group_id=data['group_id'],  # グループIDを設定
+            chat_at=datetime.utcnow()
+        )
+    else:
+        # 個人チャットの場合
+        new_message = Chats(
+            message=data['message'],
+            send_user_id=data['send_user_id'],
+            receiver_user_id=data['receiver_user_id'],
+            chat_at=datetime.utcnow()
+        )
     
-    context = f'{sender.user_name}があなたに新しいチャットを送信しました。'
-    create_notifition(receiver.user_id,context)
+    db.session.add(new_message)
     db.session.commit()
     
+    # メッセージ送信をクライアントに通知
     emit('receive_message', {
         'message': new_message.message,
-        'sender': new_message.sender.user_name,
-        'receiver': new_message.receiver.user_name,
+        'sender': new_message.sender.user_name if new_message.sender else 'Unknown',
+        'group': new_message.group.group_name if new_message.group else None,  # リレーションを使用
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
-    }, broadcast=True),201
+    }, broadcast=True)
+
+
 
 @bp.route('/chat_send', methods=['GET'])
 @jwt_required()

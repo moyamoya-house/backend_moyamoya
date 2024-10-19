@@ -75,6 +75,7 @@ class Chats(db.Model):
     # relation
     sender = db.relationship('User', foreign_keys=[send_user_id])
     receiver = db.relationship('User', foreign_keys=[receiver_user_id])
+    group = db.relationship('GroupChat', foreign_keys=[group_id])
 
 # Potsテーブル
 class Pots(db.Model):

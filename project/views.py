@@ -678,26 +678,44 @@ def handle_send_message(data):
 def chat_send():
     current_user = get_jwt_identity()
     receiver_id = request.args.get('receiverId')
+    group_id = request.args.get('groupId')
 
-    if not receiver_id:
-        return jsonify({"error": "receiverId is required"}), 400
-    
-    # 特定の相手ユーザーとのチャット履歴を取得
-    user_chat = Chats.query.filter(
-        ((Chats.send_user_id == current_user) & (Chats.receiver_user_id == receiver_id)) |
-        ((Chats.send_user_id == receiver_id) & (Chats.receiver_user_id == current_user))
-    ).order_by(Chats.chat_at.asc()).all()
+    if receiver_id:
+        # 特定の相手ユーザーとの個人チャット履歴を取得
+        user_chat = Chats.query.filter(
+            ((Chats.send_user_id == current_user) & (Chats.receiver_user_id == receiver_id)) |
+            ((Chats.send_user_id == receiver_id) & (Chats.receiver_user_id == current_user))
+        ).order_by(Chats.chat_at.asc()).all()
 
-    result = []
-    for chat in user_chat:
-        result.append({
-            'message': chat.message,
-            'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'send_user_id': chat.send_user_id,
-            'receiver_user_id': chat.receiver_user_id,
-        })
+        result = []
+        for chat in user_chat:
+            result.append({
+                'message': chat.message,
+                'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'send_user_id': chat.send_user_id,
+                'receiver_user_id': chat.receiver_user_id,
+            })
+        
+        return jsonify(result), 200
     
-    return jsonify(result), 200
+    elif group_id:
+        # グループチャットの履歴を取得
+        group_chat = Chats.query.filter_by(group_id=group_id).order_by(Chats.chat_at.asc()).all()
+
+        result = []
+        for chat in group_chat:
+            result.append({
+                'message': chat.message,
+                'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'send_user_id': chat.send_user_id,
+                'group_id': chat.group_id,  # グループIDを含める
+            })
+        
+        return jsonify(result), 200
+    
+    else:
+        return jsonify({"error": "receiverId or groupId is required"}), 400
+
 
 # GroupChat作成
 @bp.route('/group', methods=['POST'])

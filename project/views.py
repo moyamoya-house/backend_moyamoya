@@ -678,7 +678,6 @@ def handle_send_message(data):
 def chat_send():
     current_user = get_jwt_identity()
     receiver_id = request.args.get('receiverId')
-    group_id = request.args.get('groupId')
 
     if receiver_id:
         # 特定の相手ユーザーとの個人チャット履歴を取得
@@ -698,7 +697,17 @@ def chat_send():
         
         return jsonify(result), 200
     
-    elif group_id:
+    else:
+        return jsonify({"error": "receiverId or groupId is required"}), 400
+
+
+@bp.route('/chat_send_group',methods=['GET'])
+@jwt_required()
+def chat_send_group():
+    group_id = request.args.get('group_id')
+    
+    
+    if group_id:
         # グループチャットの履歴を取得
         group_chat = Chats.query.filter_by(group_id=group_id).order_by(Chats.chat_at.asc()).all()
 
@@ -715,7 +724,6 @@ def chat_send():
     
     else:
         return jsonify({"error": "receiverId or groupId is required"}), 400
-
 
 # GroupChat作成
 @bp.route('/group', methods=['POST'])

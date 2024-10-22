@@ -732,11 +732,15 @@ def create_group():
     current_user = get_jwt_identity()
     data = request.get_json()
     group_name = data.get('group_name')
-    group_image = data.get('group_image')
+    group_image = request.files.get('group_image')
     user_ids = data.get('user_ids',[])
     
     if not group_name or not user_ids:
         return jsonify({'error': 'グループ名とメンバーは必須です。'}),400
+    
+    if group_image:
+        group_image_filename = secure_filename(group_image.filename)
+        group_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_GROUP'], group_image_filename))
     
     new_group = GroupChat(group_name=group_name, create_by=current_user, group_image=group_image)
     db.session.add(new_group)

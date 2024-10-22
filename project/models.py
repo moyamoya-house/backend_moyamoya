@@ -53,6 +53,7 @@ class GroupChat(db.Model):
     __tablename__ = 'group_chat'
     group_id = db.Column(db.Integer, primary_key=True)
     group_name = db.Column(db.String(255),nullable=False)
+    group_image = db.Column(db.String(255), nullable=True)
     create_at = db.Column(db.DateTime, default=datetime.utcnow)
     create_by = db.Column(db.Integer, db.ForeignKey('user.user_id'))
 

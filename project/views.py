@@ -730,31 +730,33 @@ def chat_send_group():
 @jwt_required()
 def create_group():
     current_user = get_jwt_identity()
-    data = request.get_json()
-    group_name = data.get('group_name')
-    group_image = request.files.get('group_image')
-    user_ids = data.get('user_ids',[])
-    
+
+    # フォームデータを受け取る
+    group_name = request.form.get('group_name')  # JSONではなくformからデータを取得
+    group_image = request.files.get('group_image')  # 画像ファイルを取得
+    user_ids = request.form.getlist('user_ids[]')  # ユーザーIDのリストを取得
+
     if not group_name or not user_ids:
-        return jsonify({'error': 'グループ名とメンバーは必須です。'}),400
+        return jsonify({'error': 'グループ名とメンバーは必須です。'}), 400
     
+    # 画像がアップロードされた場合の処理
     if group_image:
         group_image_filename = secure_filename(group_image.filename)
         group_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_GROUP'], group_image_filename))
-    
-    new_group = GroupChat(group_name=group_name, create_by=current_user, group_image=group_image)
+
+    # グループ作成
+    new_group = GroupChat(group_name=group_name, create_by=current_user, group_image=group_image_filename)
     db.session.add(new_group)
     db.session.commit()
-    
-    
+
     # メンバー登録
     for user_id in user_ids:
         new_member = GroupMember(group_id=new_group.group_id, user_id=user_id)
         db.session.add(new_member)
     
     db.session.commit()
-    
-    return jsonify({'message': 'グループが作成されました。'}),201
+
+    return jsonify({'message': 'グループが作成されました。'}), 201
 
 @bp.route('/groupchat',methods=['GET'])
 @jwt_required()

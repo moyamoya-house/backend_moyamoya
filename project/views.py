@@ -772,12 +772,16 @@ def my_group():
             'group_id': group.group_id,
             'group_name': group.group_name,
             'create_by': group.create_by,
-            'create_at': group.create_at
+            'create_at': group.create_at,
+            'group_image': group.group_image,
         }
         group_list.append(group_data)
     
     return jsonify(group_list),200
 
+@bp.route('/group_image/<filename>',methods=['GET'])
+def group_image(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER_GROUP'],filename)
 # Nice crudAPI
 
 # Nice 全件取得

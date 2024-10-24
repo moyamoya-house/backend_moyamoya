@@ -701,29 +701,32 @@ def chat_send():
         return jsonify({"error": "receiverId or groupId is required"}), 400
 
 
-@bp.route('/chat_send_group',methods=['GET'])
+@bp.route('/chat_send_group', methods=['GET'])
 @jwt_required()
 def chat_send_group():
     group_id = request.args.get('group_id')
     
-    
     if group_id:
-        # グループチャットの履歴を取得
-        group_chat = Chats.query.filter_by(group_id=group_id).order_by(Chats.chat_at.asc()).all()
+        # グループチャットの履歴を取得し、送信者のユーザー情報を結合
+        group_chat = db.session.query(Chats, User).join(User, Chats.send_user_id == User.user_id).filter(
+            Chats.group_id == group_id
+        ).order_by(Chats.chat_at.asc()).all()
 
         result = []
-        for chat in group_chat:
+        for chat, user in group_chat:
             result.append({
                 'message': chat.message,
                 'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'send_user_id': chat.send_user_id,
                 'group_id': chat.group_id,  # グループIDを含める
+                'sender_name': user.user_name,  # 送信者の名前
+                'profile_image': user.prof_image  # 送信者のプロフィール画像
             })
         
         return jsonify(result), 200
     
     else:
-        return jsonify({"error": "receiverId or groupId is required"}), 400
+        return jsonify({"error": "group_id is required"}), 400
 
 # GroupChat作成
 @bp.route('/group', methods=['POST'])

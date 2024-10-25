@@ -155,6 +155,23 @@ def login():
             return jsonify({'error': 'login error'}), 400
         
 
+
+# password reset
+@bp.route('/password_reset', methods=['PUT'])
+def password_reset():
+    data = request.get_json()
+    username = data.get('user_name')
+    password = data.get('password')
+    password_confilm = data.get('password_confilm')
+    
+    user = User.query.filter_by(user_name = username).first()
+    
+    if user and password==password_confilm:
+        hash_password = generate_password_hash(password,method='sha256')
+        user.password = hash_password
+        db.session.commit()
+    return jsonify({user}),200
+
 # mypage
 @bp.route('/mypage', methods=['GET'])
 @jwt_required()

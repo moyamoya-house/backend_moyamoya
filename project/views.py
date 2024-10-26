@@ -429,9 +429,16 @@ def delete_moyamoya(id):
 # hash_tagに基づいた投稿一覧を取得・表示
 @bp.route('/hashtags/<string:hashtag>',methods=['GET'])
 def get_hashtag_post(hashtag):
+    print(hashtag)
     try:
         posts = Moyamoya.query.filter(Moyamoya.hash_tag.like(f'%#{hashtag}%')).all()
-        result = [post.to_dict() for post in posts]
+        result = [{
+                    "id": post.moyamoya_id,
+                    "post": post.moyamoya_post,
+                    "user_id": post.post_user_id,
+                    "hash_tag": post.hash_tag,
+                    "created_at": post.created_at.strftime('%Y-%m-%d %H:%M:%S') if post.created_at else None
+                } for post in posts]
         return jsonify(result),200
     except Exception as e:
         return jsonify({'error': str(e)}),500

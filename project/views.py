@@ -170,7 +170,10 @@ def password_reset():
         hash_password = generate_password_hash(password,method='sha256')
         user.password = hash_password
         db.session.commit()
-    return jsonify({user}),200
+        return jsonify({
+            'name': user.user_name,
+            'password': user.password
+            }),200
 
 # mypage
 @bp.route('/mypage', methods=['GET'])

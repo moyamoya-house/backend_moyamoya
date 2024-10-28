@@ -99,8 +99,8 @@ def update_user(id):
         password = request.form.get('password')
         email = request.form.get('email')
         comment = request.form.get('comment')
-        prof_image = request.files['profimage']
-        second_image = request.files['secondimage']
+        prof_image = request.files.get('profimage')
+        second_image = request.files.get('secondimage')
     
         if prof_image:
             prof_image_filename = secure_filename(prof_image.filename)

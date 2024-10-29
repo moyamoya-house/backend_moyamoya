@@ -90,38 +90,49 @@ def get_user(id):
     else:
         return jsonify({'error': 'user not found'}), 404
 
-# user 更新処理
-@bp.route('/users/<int:id>',methods=['PUT'])
+# user更新処理
+@bp.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get(id)
     if user:
-        name = request.form.get('name')
-        password = request.form.get('password')
-        email = request.form.get('email')
-        comment = request.form.get('comment')
-        prof_image = request.files.get('profimage')
-        second_image = request.files.get('secondimage')
-    
-        if prof_image:
-            prof_image_filename = secure_filename(prof_image.filename)
-            prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], prof_image_filename))
-            user.prof_image = prof_image_filename
+        try:
+            name = request.form.get('name')
+            password = request.form.get('password')
+            email = request.form.get('email')
+            comment = request.form.get('comment')
+            prof_image = request.files.get('profimage')
+            second_image = request.files.get('secondimage')
 
-        if second_image:
-            second_image_filename = secure_filename(second_image.filename)
-            second_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_SECOND'], second_image_filename))
-            user.second_image = second_image_filename
-        if name :
-            user.user_name = name
-        if password:
-            user.password = password
-        if email:
-            user.e_mail = email
-        if comment:
-            user.prof_comment = comment
+            # 変更の有無を確認するために取得データをプリント
+            print("Received Data - name:", name, "password:", password, "email:", email, "comment:", comment, "prof_image", prof_image, "second_image", second_image)
+
+            if prof_image:
+                prof_image_filename = secure_filename(prof_image.filename)
+                prof_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], prof_image_filename))
+                user.prof_image = prof_image_filename
+
+            if second_image:
+                second_image_filename = secure_filename(second_image.filename)
+                second_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_SECOND'], second_image_filename))
+                user.second_image = second_image_filename
+
+            if name:
+                user.user_name = name
+            if password:
+                # 暗号化して保存する場合は以下の行をコメントアウトし、代わりに暗号化のコードを追加
+                user.password = password
+            if email:
+                user.e_mail = email
+            if comment:
+                user.prof_comment = comment
+            
+            db.session.commit()
+            return jsonify({'message': 'user updated successfully'}), 200
         
-        db.session.commit()
-        return jsonify({'message': 'user updated successfully'}), 200
+        except Exception as e:
+            db.session.rollback()  # エラーがあった場合にロールバック
+            print("Error updating user:", e)
+            return jsonify({'error': 'Failed to update user'}), 500
     else:
         return jsonify({'error': 'user not found'}), 404
 

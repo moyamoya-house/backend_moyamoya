@@ -552,6 +552,17 @@ def delete_pots(id):
     else:
         return jsonify({'error': 'pots not found'}), 404
 
+# audiofile upload
+@bp.route('/audio', methods=["POST"])
+def upload_audio():
+    if 'audio' not in request.files:
+        return {"error": "No audio file"},400
+    
+    audio_file = request.files.get('audio')
+    audio_file_name = secure_filename(audio_file)
+    audio_file.save(os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'],audio_file_name))
+    
+    return jsonify({"audio": audio_file}),200
 
 # follow crudAPI
 

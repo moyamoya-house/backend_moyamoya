@@ -556,13 +556,14 @@ def delete_pots(id):
 @bp.route('/audio', methods=["POST"])
 def upload_audio():
     if 'audio' not in request.files:
-        return {"error": "No audio file"},400
+        return {"error": "No audio file"}, 400
     
     audio_file = request.files.get('audio')
-    audio_file_name = secure_filename(audio_file)
-    audio_file.save(os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'],audio_file_name))
+    # Get the filename and pass it to secure_filename
+    audio_file_name = secure_filename(audio_file.filename)
+    audio_file.save(os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], audio_file_name))
     
-    return jsonify({"audio": audio_file}),200
+    return jsonify({"audio": audio_file_name}), 200
 
 # follow crudAPI
 

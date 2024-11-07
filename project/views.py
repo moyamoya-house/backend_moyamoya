@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 import os
 import re
 from project.notification import create_notifition
+from project.emotion import analyze_sentiment
+from project.audio_text import transcribe_audio
 
 bp = Blueprint('main',__name__)
 
@@ -553,18 +555,27 @@ def delete_pots(id):
         return jsonify({'error': 'pots not found'}), 404
 
 # audiofile upload
-@bp.route('/audio', methods=["POST"])
-def upload_audio():
+@bp.route('/audio', methods=['POST'])
+def analyze_audio():
     if 'audio' not in request.files:
-        return {"error": "No audio file"}, 400
-    
-    audio_file = request.files.get('audio')
-    # Get the filename and pass it to secure_filename
-    audio_file_name = secure_filename(audio_file.filename)
-    audio_file.save(os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], audio_file_name))
-    
-    return jsonify({"audio": audio_file_name}), 200
+        return jsonify({"error": "No audio file provided"}), 400
 
+    audio_file = request.files['audio']
+    audio_path = "temp_audio.wav"
+    audio_file.save(audio_path)
+
+    try:
+        # 音声ファイルをテキストに変換
+        speech_text = transcribe_audio(audio_path)
+
+        # テキストの感情分析
+        sentiment_result = analyze_sentiment(speech_text)
+        
+        return jsonify(sentiment_result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        os.remove(audio_path)
 # follow crudAPI
 
 # follow 全件取得

@@ -13,6 +13,7 @@ import re
 from project.notification import create_notifition
 from project.emotion import analyze_sentiment
 from project.audio_text import transcribe_audio
+from pydub import AudioSegment
 
 bp = Blueprint('main',__name__)
 
@@ -554,28 +555,34 @@ def delete_pots(id):
     else:
         return jsonify({'error': 'pots not found'}), 404
 
-# audiofile upload
 @bp.route('/audio', methods=['POST'])
 def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file provided"}), 400
 
     audio_file = request.files['audio']
-    audio_path = "temp_audio.wav"
-    audio_file.save(audio_path)
+    webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], "temp_audio.webm")
+    audio_file.save(webm_path)
 
     try:
-        # 音声ファイルをテキストに変換
-        speech_text = transcribe_audio(audio_path)
+        # WebMファイルをWAVに変換
+        audio = AudioSegment.from_file(webm_path, format="webm")
+        wav_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], "temp_audio.wav")
+        audio.export(wav_path, format="wav")
 
-        # テキストの感情分析
+        # WAVファイルをテキストに変換
+        speech_text = transcribe_audio(wav_path)
         sentiment_result = analyze_sentiment(speech_text)
-        
-        return jsonify(sentiment_result)
+
+        return jsonify({
+            "text": speech_text,
+            "classification": sentiment_result
+        })
     except Exception as e:
+        # エラー内容をサーバーログで確認
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
-    finally:
-        os.remove(audio_path)
+
 # follow crudAPI
 
 # follow 全件取得

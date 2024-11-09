@@ -19,7 +19,7 @@ def analyze_sentiment(text):
     predicted_label = torch.argmax(logits, dim=1).item()
 
     # 感情ラベル
-    emotion_labels = ["Super Negative", "Negative", "Neutral", "Positive", "Super Positive"]
+    emotion_labels = ["超ネガティブ", "ネガティブ", "ニュートラル", "ポジティブ", "超ポジティブ"]
     predicted_emotion = emotion_labels[predicted_label]
 
     return {

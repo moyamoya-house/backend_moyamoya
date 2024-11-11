@@ -589,6 +589,15 @@ def analyze_audio():
         
         db.session.add(pot)
         db.session.commit()
+        
+        # 主キーを含めたファイル名に更新
+        new_audio_file_name = f"{user}_{pot.id}.webm"
+        new_webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], new_audio_file_name)
+        os.rename(webm_path, new_webm_path)  # ファイル名を変更
+
+        # オブジェクトのaudio_fileフィールドを更新
+        pot.audio_file = new_audio_file_name
+        db.session.commit()
 
         return jsonify({
             "text": speech_text,

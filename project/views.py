@@ -556,23 +556,39 @@ def delete_pots(id):
         return jsonify({'error': 'pots not found'}), 404
 
 @bp.route('/audio', methods=['POST'])
+@jwt_required()
 def analyze_audio():
     if 'audio' not in request.files:
         return jsonify({"error": "No audio file provided"}), 400
 
+    user = get_jwt_identity()
     audio_file = request.files['audio']
-    webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], "temp_audio.webm")
+    audio_file_name = secure_filename(audio_file.filename)
+    webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], audio_file_name)
     audio_file.save(webm_path)
 
     try:
+        wav_filename = os.path.splitext(audio_file_name)[0] + ".wav"
         # WebMファイルをWAVに変換
         audio = AudioSegment.from_file(webm_path, format="webm")
-        wav_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], "temp_audio.wav")
+        wav_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], wav_filename)
         audio.export(wav_path, format="wav")
 
         # WAVファイルをテキストに変換
         speech_text = transcribe_audio(wav_path)
         sentiment_result = analyze_sentiment(speech_text)
+        
+        pot = Pots(
+            audio_file=audio_file_name,
+            emotion_score = sentiment_result["predicted"],
+            stress_level = sentiment_result["voltage"],
+            classification = sentiment_result["classification"],
+            pots_user_id = user,
+            created_at = datetime.now()
+        )
+        
+        db.session.add(pot)
+        db.session.commit()
 
         return jsonify({
             "text": speech_text,

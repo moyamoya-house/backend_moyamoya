@@ -31,5 +31,6 @@ def analyze_sentiment(text):
     return {
         "text": text,
         "voltage": voltage,
-        "classification": predicted_emotion
+        "classification": predicted_emotion,
+        "predicted": predicted_label
     }

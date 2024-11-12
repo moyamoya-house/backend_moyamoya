@@ -474,6 +474,7 @@ def get_pots_all():
             "audio": pot.audio_file,
             "stress_level": pot.stress_level,
             "emotion_score": pot.emotion_score,
+            "classification": pot.classification,
             "user_id": pot.pots_user_id,
             "created_at": pot.created_at
         }
@@ -591,7 +592,7 @@ def analyze_audio():
         db.session.commit()
         
         # 主キーを含めたファイル名に更新
-        new_audio_file_name = f"{user}_{pot.id}.webm"
+        new_audio_file_name = f"{user}_{pot.pots_id}.webm"
         new_webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], new_audio_file_name)
         os.rename(webm_path, new_webm_path)  # ファイル名を変更
 
@@ -607,6 +608,12 @@ def analyze_audio():
         # エラー内容をサーバーログで確認
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# audiofile path
+@bp.route('/audiofile/<filename>', methods=['GET'])
+def audio_file(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER_AUDIO'], filename)
 
 # follow crudAPI
 

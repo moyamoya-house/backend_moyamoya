@@ -565,7 +565,12 @@ def analyze_audio():
     user = get_jwt_identity()
     audio_file = request.files['audio']
     audio_file_name = secure_filename(audio_file.filename)
-    webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], audio_file_name)
+    # ユーザフォルダのパスを生成
+    user_folder = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], str(user))
+    os.makedirs(user_folder, exist_ok=True)  # フォルダが存在しない場合は作成
+
+    # WebMファイルの保存パス
+    webm_path = os.path.join(user_folder, audio_file_name)
     audio_file.save(webm_path)
 
     try:

@@ -565,8 +565,9 @@ def analyze_audio():
     user = get_jwt_identity()
     audio_file = request.files['audio']
     audio_file_name = secure_filename(audio_file.filename)
-    # ユーザフォルダのパスを生成
-    user_folder = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], str(user))
+    # ベースフォルダを指定してユーザーフォルダのパスを生成
+    base_folder = current_app.config["UPLOAD_FOLDER_AUDIO"]
+    user_folder = os.path.join(base_folder, str(user))
     os.makedirs(user_folder, exist_ok=True)  # フォルダが存在しない場合は作成
 
     # WebMファイルの保存パス
@@ -596,10 +597,10 @@ def analyze_audio():
         db.session.add(pot)
         db.session.commit()
         
-        # 主キーを含めたファイル名に更新
+        # 主キーを含めたファイル名に更新し、user_folderに保存
         new_audio_file_name = f"{user}_{pot.pots_id}.webm"
-        new_webm_path = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], new_audio_file_name)
-        os.rename(webm_path, new_webm_path)  # ファイル名を変更
+        new_webm_path = os.path.join(user_folder, new_audio_file_name)
+        os.rename(webm_path, new_webm_path)
 
         # オブジェクトのaudio_fileフィールドを更新
         pot.audio_file = new_audio_file_name
@@ -616,9 +617,18 @@ def analyze_audio():
 
 
 # audiofile path
-@bp.route('/audiofile/<filename>', methods=['GET'])
-def audio_file(filename):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER_AUDIO'], filename)
+@bp.route('/audiofile/<user_id>/<filename>', methods=['GET'])
+def audio_file(user_id, filename):
+    # ユーザーフォルダのパスを指定
+    user_folder = os.path.join(current_app.config['UPLOAD_FOLDER_AUDIO'], user_id)
+
+    # ファイルが存在するか確認
+    if not os.path.exists(os.path.join(user_folder, filename)):
+        return jsonify({"error": "File not found"}), 404
+
+    # ユーザーフォルダからファイルを送信
+    return send_from_directory(user_folder, filename)
+
 
 # follow crudAPI
 

@@ -459,6 +459,9 @@ def get_hashtag_post(hashtag):
         return jsonify(result),200
     except Exception as e:
         return jsonify({'error': str(e)}),500
+    
+
+# トレンド機能
 
 # potsテーブル crudAPI
 

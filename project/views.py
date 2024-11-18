@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember, HashTag, MoyamoyaHashtag
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
 from project import db, create_app,socket
 from flask_socketio import emit, disconnect
@@ -220,56 +220,89 @@ def second_prof_image(filename):
 
 # MoyamoyaテーブルcrudAPI作成
 
-# moyamoya 全件取得
-@bp.route('/moyamoya',methods=['GET'])
+# moyamoya全件取得
+@bp.route('/moyamoya', methods=['GET'])
 def get_moyamoya_all():
     moyamoya_all = Moyamoya.query.all()
     moyamoyas_data = []
-    
+
     for moyamoya in moyamoya_all:
         nice_count = Nice.query.filter_by(post_id=moyamoya.moyamoya_id).count()
-        print(nice_count)
+        
+        # Moyamoya に関連付けられたハッシュタグを取得
+        hashtags = [
+            hashtag.tag_name
+            for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == moyamoya.moyamoya_id).all()
+        ]
+        
         moyamoya_data = {
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
-            'tag': moyamoya.hash_tag,
+            'tags': hashtags,  # ハッシュタグをリストで返す
             'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
             'count': nice_count,
         }
         moyamoyas_data.append(moyamoya_data)
+    
     return jsonify(moyamoyas_data), 200
 
-
 # moyamoya create
-@bp.route('/moyamoya',methods=['POST'])
+@bp.route('/moyamoya', methods=['POST'])
 @jwt_required()
 def create_moyamoya():
     data = request.get_json()
     moyamoya_post = data.get('post')
     moyamoya_user = get_jwt_identity()
-    
+
     if moyamoya_post and moyamoya_user:
+        # 新しいMoyamoyaエントリを作成
         moyamoya = Moyamoya(
-            moyamoya_post = moyamoya_post,
-            post_user_id = moyamoya_user,
-            created_at = datetime.utcnow()
+            moyamoya_post=moyamoya_post,
+            post_user_id=moyamoya_user,
+            created_at=datetime.utcnow()
         )
-        
-        hashtags = re.findall(r'#\w+',moyamoya_post)
-        
-        moyamoya.hash_tag = ' '.join(hashtags)
         db.session.add(moyamoya)
+        db.session.flush()  # `moyamoya_id`を取得するために一時保存
+
+        # ハッシュタグの抽出
+        hashtags = re.findall(r'#\w+', moyamoya_post)
+
+        for tag in hashtags:
+            # ハッシュタグ名を正規化（例: 前後のスペース除去）
+            tag_name = tag.strip().lower()
+
+            # 既存のタグを検索
+            existing_tag = HashTag.query.filter_by(tag_name=tag_name).first()
+
+            if not existing_tag:
+                # 新しいタグを作成
+                new_tag = HashTag(tag_name=tag_name)
+                db.session.add(new_tag)
+                db.session.flush()  # `id`を取得するために一時保存
+                tag_id = new_tag.tag_id
+            else:
+                tag_id = existing_tag.tag_id
+
+            # MoyamoyaHashTagエントリを作成
+            moyamoya_hashtag = MoyamoyaHashtag(
+                moyamoya_id=moyamoya.moyamoya_id,
+                tag_id=tag_id
+            )
+            db.session.add(moyamoya_hashtag)
+
+        # 最終的なコミット
         db.session.commit()
+
         return jsonify({
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
-            'hash_tag': moyamoya.hash_tag,
+            'hashtags': hashtags,
             'created_at': moyamoya.created_at
         }), 201
     else:
-        return jsonify({'error': 'Missingrequired fields'}), 400
+        return jsonify({'error': 'Missing required fields'}), 400
 
 # moyamoya データ単体取得
 @bp.route('/moyamoya/<int:id>',methods=['GET'])
@@ -293,19 +326,28 @@ def get_moyamoya(id):
 def moyamoya_user():
     moyamoya_user = get_jwt_identity()
     moyamoyas = Moyamoya.query.filter_by(post_user_id=moyamoya_user)
-    moyamoya_all = []
-    for moyamoyas in moyamoyas:
-        nice_count = Nice.query.filter_by(post_id=moyamoyas.moyamoya_id).count()
+    moyamoyas_data = []
+
+    for moyamoya in moyamoyas:
+        nice_count = Nice.query.filter_by(post_id=moyamoya.moyamoya_id).count()
+        
+        # Moyamoya に関連付けられたハッシュタグを取得
+        hashtags = [
+            hashtag.tag_name
+            for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == moyamoya.moyamoya_id).all()
+        ]
+        
         moyamoya_data = {
-            'id': moyamoyas.moyamoya_id,
-            'post': moyamoyas.moyamoya_post,
-            'user_id': moyamoyas.post_user_id,
-            'hash_tag': moyamoyas.hash_tag,
-            'created_at': moyamoyas.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoyas.created_at else None,
-            'count': nice_count
+            'id': moyamoya.moyamoya_id,
+            'post': moyamoya.moyamoya_post,
+            'user_id': moyamoya.post_user_id,
+            'tags': hashtags,  # ハッシュタグをリストで返す
+            'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
+            'count': nice_count,
         }
-        moyamoya_all.append(moyamoya_data)
-    return jsonify(moyamoya_all), 200
+        moyamoyas_data.append(moyamoya_data)
+    
+    return jsonify(moyamoyas_data), 200
 
 # フォローユーザーの投稿
 @bp.route('/moyamoya_follow', methods=['GET'])
@@ -322,11 +364,17 @@ def moyamoya_follow():
         result = []
         for post in posts:
             nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
+            
+                    # Moyamoya に関連付けられたハッシュタグを取得
+            hashtags = [
+                hashtag.tag_name
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+            ]
             result.append({
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
-                'hash_tag': post.hash_tag,
+                'hash_tag': hashtags,
                 'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
                 'count': nice_count
             })
@@ -353,11 +401,17 @@ def moyamoya_bookmark():
         
         for post in posts:
             nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
+            
+            # Moyamoya に関連付けられたハッシュタグを取得
+            hashtags = [
+                hashtag.tag_name
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+            ]
             result.append({
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
-                'hash_tag': post.hash_tag,
+                'hash_tag': hashtags,
                 'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
                 'count': nice_count
             })
@@ -378,12 +432,18 @@ def user_post(user_id):
         
         for posts in post:
             nice_count = Nice.query.filter_by(post_id=posts.moyamoya_id).count()
+            
+            hashtags = [
+                hashtag.tag_name
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+            ]
             result.append({
                 'id': posts.moyamoya_id,
                 'post': posts.moyamoya_post,
                 'user_id': posts.post_user_id,
                 'created_at': posts.created_at.strftime("%Y-%m-%d %H:%M:%S") if posts.created_at else None,
-                'count': nice_count
+                'count': nice_count,
+                'hashtag': hashtags
             })
         
         return jsonify(result),200
@@ -406,12 +466,18 @@ def user_bookmark(user_id):
         
         for post in posts:
             nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
+            
+            hashtags = [
+                hashtag.tag_name
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+            ]
             result.append({
                 'id': post.moyamoya_id,
                 'post': post.moyamoya_post,
                 'user_id': post.post_user_id,
                 'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
-                'count': nice_count
+                'count': nice_count,
+                'hashtag': hashtags,
             })
         
         return jsonify(result),200

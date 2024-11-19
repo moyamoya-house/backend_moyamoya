@@ -13,6 +13,7 @@ import re
 from project.notification import create_notifition
 from project.emotion import analyze_sentiment
 from project.audio_text import transcribe_audio
+from project.hashtag import get_trending_hashtags
 from pydub import AudioSegment
 
 bp = Blueprint('main',__name__)
@@ -528,6 +529,11 @@ def get_hashtag_post(hashtag):
     
 
 # トレンド機能
+@bp.route('/hashtag_trend',methods=["GET"])
+def trend():
+    trends = get_trending_hashtags(db.session)
+    return jsonify([{"tag": trend[0], "count": trend[1]} for trend in trends])
+
 
 # potsテーブル crudAPI
 
@@ -545,7 +551,7 @@ def get_pots_all():
             "emotion_score": pot.emotion_score,
             "classification": pot.classification,
             "user_id": pot.pots_user_id,
-            "created_at": pot.created_at
+            "created_at": pot.created_at.strftime("%Y-%m-%d %H:%M:%S") if pot.created_at else None,
         }
         pots_data.append(pot_data)
     return jsonify(pots_data), 200
@@ -575,7 +581,7 @@ def create_pots():
             "emotion_score": pots.emotion_score,
             'stress': pots.stress_level,
             'user_id': pots.pots_user_id,
-            'created_at': pots.created_at
+            'created_at': pots.created_at.strftime("%Y-%m-%d %H:%M:%S") if pots.created_at else None,
         }), 201
     else:
         return jsonify({'error': 'Missingrequired fields'}), 400

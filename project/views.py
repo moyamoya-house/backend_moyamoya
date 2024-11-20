@@ -511,22 +511,25 @@ def delete_moyamoya(id):
         return jsonify({'error': 'moyamoya not found'}), 404
 
 # hash_tagに基づいた投稿一覧を取得・表示
-@bp.route('/hashtags/<string:hashtag>',methods=['GET'])
+@bp.route('/hashtags/<string:hashtag>', methods=['GET'])
 def get_hashtag_post(hashtag):
-    print(hashtag)
     try:
-        posts = Moyamoya.query.filter(Moyamoya.hash_tag.like(f'%#{hashtag}%')).all()
+        # Moyamoya -> MoyamoyaHashtag -> HashTag のリレーションを使ってフィルタリング
+        posts = Moyamoya.query.join(MoyamoyaHashtag).join(HashTag).filter(HashTag.tag_name == hashtag).all()
+        
+        # 結果をフォーマット
         result = [{
-                    "id": post.moyamoya_id,
-                    "post": post.moyamoya_post,
-                    "user_id": post.post_user_id,
-                    "hash_tag": post.hash_tag,
-                    "created_at": post.created_at.strftime('%Y-%m-%d %H:%M:%S') if post.created_at else None
-                } for post in posts]
-        return jsonify(result),200
+            "id": post.moyamoya_id,
+            "post": post.moyamoya_post,
+            "user_id": post.post_user_id,
+            "hash_tag": [tag.hashtag.tag_name for tag in post.moyamoya_hashtags],
+            "created_at": post.created_at.strftime('%Y-%m-%d %H:%M:%S') if post.created_at else None
+        } for post in posts]
+        
+        return jsonify(result), 200
     except Exception as e:
-        return jsonify({'error': str(e)}),500
-    
+        return jsonify({'error': str(e)}), 500
+
 
 # トレンド機能
 @bp.route('/hashtag_trend',methods=["GET"])
@@ -853,6 +856,10 @@ def handle_send_message(data):
     db.session.add(new_message)
     db.session.commit()
     
+    # メッセージ生成
+    context = f'{new_message.user_name}があなたをフォローしました'
+    create_notifition(new_message.send_user_id,context)
+    db.session.commit()
     # メッセージ送信をクライアントに通知
     emit('receive_message', {
         'message': new_message.message,

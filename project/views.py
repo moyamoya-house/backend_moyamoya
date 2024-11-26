@@ -510,21 +510,32 @@ def delete_moyamoya(id):
     else:
         return jsonify({'error': 'moyamoya not found'}), 404
 
-# hash_tagに基づいた投稿一覧を取得・表示
+# ハッシュタグに基づく投稿一覧取得
 @bp.route('/hashtags/<string:hashtag>', methods=['GET'])
 def get_hashtag_post(hashtag):
     try:
         # Moyamoya -> MoyamoyaHashtag -> HashTag のリレーションを使ってフィルタリング
         posts = Moyamoya.query.join(MoyamoyaHashtag).join(HashTag).filter(HashTag.tag_name == hashtag).all()
-        
-        # 結果をフォーマット
-        result = [{
-            "id": post.moyamoya_id,
-            "post": post.moyamoya_post,
-            "user_id": post.post_user_id,
-            "hash_tag": [tag.hashtag.tag_name for tag in post.moyamoya_hashtags],
-            "created_at": post.created_at.strftime('%Y-%m-%d %H:%M:%S') if post.created_at else None
-        } for post in posts]
+        result = []
+
+        for post in posts:
+            nice_count = Nice.query.filter_by(post_id=post.moyamoya_id).count()
+            
+            # Moyamoya に関連付けられたハッシュタグを取得
+            hashtags = [
+                hashtag.tag_name
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+            ]
+            
+            post_data = {
+                'id': post.moyamoya_id,
+                'post': post.moyamoya_post,
+                'user_id': post.post_user_id,
+                'tags': hashtags,  # ハッシュタグをリストで返す
+                'created_at': post.created_at.strftime("%Y-%m-%d %H:%M:%S") if post.created_at else None,
+                'count': nice_count,
+            }
+            result.append(post_data)
         
         return jsonify(result), 200
     except Exception as e:

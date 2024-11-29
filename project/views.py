@@ -15,6 +15,7 @@ from project.emotion import analyze_sentiment
 from project.audio_text import transcribe_audio
 from project.hashtag import get_trending_hashtags
 from pydub import AudioSegment
+import openai
 
 bp = Blueprint('main',__name__)
 

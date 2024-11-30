@@ -15,7 +15,7 @@ from project.emotion import analyze_sentiment
 from project.audio_text import transcribe_audio
 from project.hashtag import get_trending_hashtags
 from pydub import AudioSegment
-import openai
+from project.openai import generate_stress_relief_suggestion
 
 bp = Blueprint('main',__name__)
 
@@ -674,6 +674,12 @@ def analyze_audio():
         # WAVファイルをテキストに変換
         speech_text = transcribe_audio(wav_path)
         sentiment_result = analyze_sentiment(speech_text)
+        
+        # 感情分析結果を基にストレス発散方法を生成
+        sugeestion = generate_stress_relief_suggestion(
+            emotion=sentiment_result['classification'],
+            text=speech_text,
+        )
         
         pot = Pots(
             audio_file=audio_file_name,

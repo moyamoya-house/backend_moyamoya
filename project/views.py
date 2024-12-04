@@ -961,11 +961,14 @@ def create_group():
     if group_image:
         group_image_filename = secure_filename(group_image.filename)
         group_image.save(os.path.join(current_app.config['UPLOAD_FOLDER_GROUP'], group_image_filename))
+    else:
+        group_image_filename = None
 
     # グループ作成
-    new_group = GroupChat(group_name=group_name, create_by=current_user, group_image=group_image_filename)
-    db.session.add(new_group)
-    db.session.commit()
+    if group_name and current_user:
+        new_group = GroupChat(group_name=group_name, create_by=current_user, group_image=group_image_filename)
+        db.session.add(new_group)
+        db.session.commit()
 
     # メンバー登録
     for user_id in user_ids:

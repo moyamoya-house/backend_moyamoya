@@ -862,6 +862,19 @@ def handle_send_message(data):
             group_id=data['group_id'],  # グループIDを設定
             chat_at=datetime.utcnow()
         )
+        
+        db.session.add(new_message)
+        db.session.commit()
+        
+        send_user = User.query.get(new_message.send_user_id)
+        
+        if send_user:
+            group_member = GroupMember.query.filter_by(group_id=group.group_id).all()
+            for member in group_member:
+                if member.user_id != new_message.send_user_id:  # 送信者自身には通知を送らない
+                    context = f'{send_user.user_name}がグループ「{group.group_name}」に新しいメッセージを送信しました'
+                    create_notifition(member.user_id, context)
+            db.session.commit()
     else:
         # 個人チャットの場合
         new_message = Chats(
@@ -871,13 +884,16 @@ def handle_send_message(data):
             chat_at=datetime.utcnow()
         )
     
-    db.session.add(new_message)
-    db.session.commit()
+        db.session.add(new_message)
+        db.session.commit()
     
-    # メッセージ生成
-    context = f'{new_message.user_name}があなたをフォローしました'
-    create_notifition(new_message.send_user_id,context)
-    db.session.commit()
+        send_user = User.query.get(new_message.send_user_id)
+    
+        # メッセージ生成
+        if send_user:
+            context = f'{send_user.user_name}があなたに新しいチャットを送信しました'
+            create_notifition(new_message.receiver_user_id,context)
+            db.session.commit()
     # メッセージ送信をクライアントに通知
     emit('receive_message', {
         'message': new_message.message,

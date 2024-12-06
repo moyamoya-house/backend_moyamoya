@@ -139,5 +139,6 @@ class Notification(db.Model):
     notification_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'),nullable=False)
     notification = db.Column(db.String(255),nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
     create_at = db.Column(db.DateTime, nullable=False)
 

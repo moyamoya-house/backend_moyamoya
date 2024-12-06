@@ -1114,8 +1114,43 @@ def notification():
         notifications_data = {
             'id': noti.notification_id,
             'notification': noti.notification,
+            'is_read': noti.is_read,
             'create_at': noti.create_at,
         }
         notification_data.append(notifications_data)
     
     return jsonify({'notification': notification_data}),200
+
+@bp.route('/notification/unread',methods=["GET"])
+@jwt_required()
+def unread():
+    current_user = get_jwt_identity()
+    notifications = Notification.query.filter_by(user_id=current_user,is_read=False).all()
+    return jsonify([{
+            'id': noti.notification_id,
+            'notification': noti.notification,
+            'is_read': noti.is_read,
+            'create_at': noti.create_at,}
+            for noti in notifications
+    ]),200
+
+@bp.route('/notifications/mark-as-read/<int:notification_id>', methods=['POST'])
+@jwt_required()
+def mark_notification_as_read(notification_id):
+    current_user = get_jwt_identity()
+    notification = Notification.query.filter_by(id=notification_id, user_id=current_user).first()
+    if not notification:
+        return jsonify({'error': '通知が見つかりません'}), 404
+    
+    notification.is_read = True
+    db.session.commit()
+    return jsonify({'message': '通知を既読にしました'})
+
+
+@bp.route('/notifications/mark-all-as-read', methods=['POST'])
+@jwt_required()
+def mark_all_notifications_as_read():
+    current_user = get_jwt_identity()
+    Notification.query.filter_by(user_id=current_user, is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'message': 'すべての通知を既読にしました'})

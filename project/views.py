@@ -851,7 +851,9 @@ def handle_connect():
 
 @socket.on('send_message')
 def handle_send_message(data):
-    if 'group_id' in data:
+    print(data)  # デバッグ用
+
+    if 'group_id' in data and data['group_id']:  # グループIDが存在する場合のみグループチャット処理
         # グループチャットの場合
         group = GroupChat.query.get(data['group_id'])
         if not group:
@@ -892,8 +894,9 @@ def handle_send_message(data):
         # メッセージ生成
         if send_user:
             context = f'{send_user.user_name}があなたに新しいチャットを送信しました'
-            create_notifition(new_message.receiver_user_id,context)
+            create_notifition(new_message.receiver_user_id, context)
             db.session.commit()
+
     # メッセージ送信をクライアントに通知
     emit('receive_message', {
         'message': new_message.message,

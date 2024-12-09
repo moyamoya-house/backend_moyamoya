@@ -437,7 +437,7 @@ def user_post(user_id):
             
             hashtags = [
                 hashtag.tag_name
-                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == post.moyamoya_id).all()
+                for hashtag in HashTag.query.join(MoyamoyaHashtag).filter(MoyamoyaHashtag.moyamoya_id == posts.moyamoya_id).all()
             ]
             result.append({
                 'id': posts.moyamoya_id,
@@ -761,7 +761,9 @@ def create_follow(user_id):
     db.session.add(friendship)
     db.session.commit()
     # メッセージ生成
-    context = f'{current_user_id.user_name}があなたをフォローしました'
+    
+    user = User.query.get(user_id=current_user_id)
+    context = 'f{user.user_name}があなたをフォローしました'
     create_notifition(user_id,context)
     db.session.commit()
     return jsonify({

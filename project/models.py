@@ -81,7 +81,8 @@ class GroupMember(db.Model):
 # chatsテーブル
 class Chats(db.Model):
     chat_id = db.Column(db.Integer, primary_key=True)
-    message = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.String(255), nullable=True)
+    image = db.Column(db.String(255), nullable=True)
     send_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     receiver_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group_chat.group_id'), nullable=True)

@@ -855,6 +855,11 @@ def handle_connect():
 def handle_send_message(data):
     print(data)  # デバッグ用
 
+    image_path = None
+    if 'image' in data and data['image']:
+        image_data = data['image']
+        filename = secure_filename(image_data['filename'])
+        image_path = os.path.join(current_app.config['UPLOAD_FOLDER_CHAT'], filename)
     if 'group_id' in data and data['group_id']:  # グループIDが存在する場合のみグループチャット処理
         # グループチャットの場合
         group = GroupChat.query.get(data['group_id'])
@@ -863,6 +868,7 @@ def handle_send_message(data):
         new_message = Chats(
             message=data['message'],
             send_user_id=data['send_user_id'],
+            image = image_path,
             group_id=data['group_id'],  # グループIDを設定
             chat_at=datetime.utcnow()
         )
@@ -884,6 +890,7 @@ def handle_send_message(data):
         new_message = Chats(
             message=data['message'],
             send_user_id=data['send_user_id'],
+            image = image_path,
             receiver_user_id=data['receiver_user_id'],
             chat_at=datetime.utcnow()
         )
@@ -902,6 +909,7 @@ def handle_send_message(data):
     # メッセージ送信をクライアントに通知
     emit('receive_message', {
         'message': new_message.message,
+        'image': new_message.image,
         'sender': new_message.sender.user_name if new_message.sender else 'Unknown',
         'group': new_message.group.group_name if new_message.group else None,  # リレーションを使用
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
@@ -926,6 +934,7 @@ def chat_send():
         for chat in user_chat:
             result.append({
                 'message': chat.message,
+                'image': chat.image,
                 'timestamp': chat.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'send_user_id': chat.send_user_id,
                 'receiver_user_id': chat.receiver_user_id,
@@ -936,6 +945,9 @@ def chat_send():
     else:
         return jsonify({"error": "receiverId or groupId is required"}), 400
 
+@bp.route('/chat_image/<filename>', methods=['GET'])
+def chat_image(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER_CHAT'],filename)
 
 @bp.route('/chat_send_group', methods=['GET'])
 @jwt_required()

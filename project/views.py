@@ -855,7 +855,7 @@ def handle_connect():
 @socket.on('send_message')
 def handle_send_message(data):
 
-    image_path = None
+    filename = None
     if 'image' in data and data['image']:
         image_data = data['image']['data']
         print(image_data)
@@ -872,7 +872,7 @@ def handle_send_message(data):
         new_message = Chats(
             message=data['message'],
             send_user_id=data['send_user_id'],
-            image = image_path,
+            image = filename,
             group_id=data['group_id'],  # グループIDを設定
             chat_at=datetime.utcnow()
         )

@@ -36,7 +36,7 @@ def create_app(config_filename ="config.py"):
     app.config["UPLOAD_FOLDER_SECOND"] = os.path.join(os.getcwd(), 'project/static/second_prof_image')
     app.config["UPLOAD_FOLDER_GROUP"] = os.path.join(os.getcwd(), 'project/static/group_chat')
     app.config["UPLOAD_FOLDER_AUDIO"] = os.path.join(os.getcwd(), 'project/static/audio_file')
-    app.config["IPLOAD_FOLDER_CHAT"] = os.path.join(os.getcwd(), 'project/static/chat_image')
+    app.config["UPLOAD_FOLDER_CHAT"] = os.path.join(os.getcwd(), 'project/static/chat_image')
     
     app.config['SECRET_KEY'] = 'moyamoya_house'
     app.config['JWT_SECRET_KEY'] = 'moyamoya_house'

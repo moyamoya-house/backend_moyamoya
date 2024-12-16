@@ -1,3 +1,4 @@
+import base64
 from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
@@ -853,13 +854,16 @@ def handle_connect():
 
 @socket.on('send_message')
 def handle_send_message(data):
-    print(data)  # デバッグ用
 
     image_path = None
     if 'image' in data and data['image']:
-        image_data = data['image']
-        filename = secure_filename(image_data['filename'])
+        image_data = data['image']['data']
+        print(image_data)
+        filename = secure_filename(data['image']['filename'])
         image_path = os.path.join(current_app.config['UPLOAD_FOLDER_CHAT'], filename)
+        
+        with open(image_path, "wb") as f:
+            f.write(base64.b64decode(image_data.split(",")[1]))
     if 'group_id' in data and data['group_id']:  # グループIDが存在する場合のみグループチャット処理
         # グループチャットの場合
         group = GroupChat.query.get(data['group_id'])
@@ -890,7 +894,7 @@ def handle_send_message(data):
         new_message = Chats(
             message=data['message'],
             send_user_id=data['send_user_id'],
-            image = image_path,
+            image = filename,
             receiver_user_id=data['receiver_user_id'],
             chat_at=datetime.utcnow()
         )

@@ -1155,17 +1155,25 @@ def unread():
             for noti in notifications
     ]),200
 
-@bp.route('/notifications/mark-as-read/<int:notification_id>', methods=['POST'])
+@bp.route('/notifications/mark-as-read', methods=['POST'])
 @jwt_required()
-def mark_notification_as_read(notification_id):
+def mark_notifications_as_read():
+    data = request.json
     current_user = get_jwt_identity()
-    notification = Notification.query.filter_by(id=notification_id, user_id=current_user).first()
-    if not notification:
-        return jsonify({'error': '通知が見つかりません'}), 404
-    
-    notification.is_read = True
+
+    # チェックされた通知のIDリストを取得
+    notification_ids = data.get('notification_ids', [])
+    if not notification_ids:
+        return jsonify({'error': '通知IDが送信されていません'}), 400
+
+    # 対象の通知を更新
+    Notification.query.filter(
+        Notification.notification_id.in_(notification_ids),
+        Notification.user_id == current_user
+    ).update({'is_read': True}, synchronize_session=False)
+
     db.session.commit()
-    return jsonify({'message': '通知を既読にしました'})
+    return jsonify({'message': '指定された通知を既読にしました'}),200
 
 
 @bp.route('/notifications/mark-all-as-read', methods=['POST'])
@@ -1175,3 +1183,11 @@ def mark_all_notifications_as_read():
     Notification.query.filter_by(user_id=current_user, is_read=False).update({'is_read': True})
     db.session.commit()
     return jsonify({'message': 'すべての通知を既読にしました'})
+
+@bp.route('/notification/unread-count', methods=['GET'])
+@jwt_required()
+def get_unread_count():
+    current_user = get_jwt_identity()
+    count = Notification.query.filter_by(user_id=current_user, is_read=False).count()
+    return jsonify({'unread_count': count})
+

@@ -804,6 +804,46 @@ def user_follower(user_id):
         'following': following_count,
     }),200
 
+# follow user 一覧
+@bp.route('/follow_users', methods=['GET'])
+@jwt_required()
+def follower_users():
+    current_user = get_jwt_identity()
+    
+    follower_users = db.session.query(User).join(Follow, Follow.followed_user_id == User.user_id).filter(Follow.follower_user_id == current_user).all()
+    
+    # 結果を整形して返す
+    following_list = [{
+        'user_id': user.user_id,
+        'user_name': user.user_name,
+        'prof_image': user.prof_image,
+        'prof_comment': user.prof_comment,
+    } for user in follower_users]
+    
+    return jsonify({ 'following': following_list }),200
+
+
+@bp.route('/followers', methods=['GET'])
+@jwt_required()
+def get_followers():
+    current_user_id = get_jwt_identity()
+
+    # フォロワーユーザーを取得
+    followers = db.session.query(User).join(Follow, Follow.follower_user_id == User.user_id) \
+        .filter(Follow.followed_user_id == current_user_id).all()
+
+    # 結果を整形して返す
+    followers_list = [{
+        'user_id': user.user_id,
+        'user_name': user.user_name,
+        'prof_image': user.prof_image,
+        'prof_comment': user.prof_comment,
+    } for user in followers]
+
+    return jsonify({'followers': followers_list}), 200
+
+
+
 @bp.route('/follow_type/<int:user_id>', methods=["GET"])
 @jwt_required()
 def follow_type(user_id):

@@ -822,6 +822,23 @@ def follower_users():
     
     return jsonify({ 'following': following_list }),200
 
+# follow user 一覧
+@bp.route('/follow_user/<int:user_id>', methods=['GET'])
+def follower_user(user_id):
+    
+    follower_users = db.session.query(User).join(Follow, Follow.followed_user_id == User.user_id).filter(Follow.follower_user_id == user_id).all()
+    
+    # 結果を整形して返す
+    following_list = [{
+        'user_id': user.user_id,
+        'user_name': user.user_name,
+        'prof_image': user.prof_image,
+        'prof_comment': user.prof_comment,
+    } for user in follower_users]
+    
+    return jsonify({ 'following': following_list }),200
+
+
 
 @bp.route('/followers', methods=['GET'])
 @jwt_required()

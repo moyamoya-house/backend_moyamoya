@@ -823,8 +823,8 @@ def follower_users():
     return jsonify({ 'following': following_list }),200
 
 # follow user 一覧
-@bp.route('/follow_users/<int:user_id>', methods=['GET'])
-def follower_users(user_id):
+@bp.route('/follow_user/<int:user_id>', methods=['GET'])
+def follower_user(user_id):
     
     follower_users = db.session.query(User).join(Follow, Follow.followed_user_id == User.user_id).filter(Follow.follower_user_id == user_id).all()
     

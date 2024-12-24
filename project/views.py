@@ -811,7 +811,7 @@ def follower_users():
     current_user = get_jwt_identity()
     
     follower_users = db.session.query(User).join(Follow, Follow.followed_user_id == User.user_id).filter(Follow.follower_user_id == current_user).all()
-    
+
     # 結果を整形して返す
     following_list = [{
         'user_id': user.user_id,
@@ -819,7 +819,7 @@ def follower_users():
         'prof_image': user.prof_image,
         'prof_comment': user.prof_comment,
     } for user in follower_users]
-    
+    print(following_list)
     return jsonify({ 'following': following_list }),200
 
 # follow user 一覧

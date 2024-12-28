@@ -8,6 +8,7 @@ from flask_socketio import SocketIO
 import os
 from datetime import timedelta
 import eventlet
+from dotenv import load_dotenv
 
 db = SQLAlchemy()
 
@@ -20,6 +21,8 @@ cors = CORS()
 jwt = JWTManager()
 
 socket = SocketIO()
+
+load_dotenv()
 
 def create_app(config_filename ="config.py"):
     app= Flask(__name__)
@@ -42,6 +45,9 @@ def create_app(config_filename ="config.py"):
     app.config['JWT_SECRET_KEY'] = 'moyamoya_house'
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+    
+    app.config['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
+    
     from project.models import User, Pots, Moyamoya, Chats, Follow, Nice
     @login_manager.user_loader
     def load_user(user_id):

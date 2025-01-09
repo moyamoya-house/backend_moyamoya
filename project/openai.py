@@ -13,7 +13,7 @@ def generate_stress_relief_suggestion(emotion, text):
     
     try:
         response = openai.Completion.create(
-            model="gpt-4",  # 使用するOpenAIモデル
+            model="gpt-4o",  # 使用するOpenAIモデル
             messages=[
                 {"role": "system", "content": "あなたは役立つアシスタントです。"},
                 {"role": "user", "content": prompt},

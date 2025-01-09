@@ -613,7 +613,8 @@ def get_pots(id):
             'emotion_score': pots.emotion_score,
             'stress_level': pots.stress_level,
             'pots_user_id': pots.pots_user_id,
-            'created_at': pots.created_at
+            'created_at': pots.created_at,
+            'classification': pots.classification,
         }
         return jsonify(pots_data), 200
     else:

@@ -100,6 +100,7 @@ class Pots(db.Model):
     emotion_score = db.Column(db.Float, nullable=True)
     stress_level = db.Column(db.Float, nullable=True)
     classification = db.Column(db.String(255), nullable=True)
+    solution = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     pots_user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
 

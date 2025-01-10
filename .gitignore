@@ -1,4 +1,4 @@
-/.env
+.env
 migrations/* -text
 migrations/versions/*.py text eol=lf
 project/__pycache__/*

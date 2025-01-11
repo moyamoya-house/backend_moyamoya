@@ -567,6 +567,7 @@ def get_pots_all():
             "emotion_score": pot.emotion_score,
             "classification": pot.classification,
             "user_id": pot.pots_user_id,
+            "solution": pot.solution,
             "created_at": pot.created_at.strftime("%Y-%m-%d %H:%M:%S") if pot.created_at else None,
         }
         pots_data.append(pot_data)
@@ -614,6 +615,7 @@ def get_pots(id):
             'stress_level': pots.stress_level,
             'pots_user_id': pots.pots_user_id,
             'created_at': pots.created_at,
+            "solution": pots.solution,
             'classification': pots.classification,
         }
         return jsonify(pots_data), 200
@@ -683,11 +685,14 @@ def analyze_audio():
             text=speech_text,
         )
         
+        print(sugeestion)
+        
         pot = Pots(
             audio_file=audio_file_name,
             emotion_score = sentiment_result["predicted"],
             stress_level = sentiment_result["voltage"],
             classification = sentiment_result["classification"],
+            solution = sugeestion,
             pots_user_id = user,
             created_at = datetime.now()
         )

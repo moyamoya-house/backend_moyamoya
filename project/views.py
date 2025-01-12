@@ -711,7 +711,8 @@ def analyze_audio():
 
         return jsonify({
             "text": speech_text,
-            "classification": sentiment_result
+            "classification": sentiment_result,
+            "solution": sugeestion,
         })
     except Exception as e:
         # エラー内容をサーバーログで確認

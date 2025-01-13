@@ -316,7 +316,6 @@ def get_moyamoya(id):
             'id': moyamoya.moyamoya_id,
             'post': moyamoya.moyamoya_post,
             'user_id': moyamoya.post_user_id,
-            'hash_tag': moyamoya.hash_tag,
             'created_at': moyamoya.created_at.strftime("%Y-%m-%d %H:%M:%S") if moyamoya.created_at else None,
         }
         return jsonify(moyamoya_data), 200

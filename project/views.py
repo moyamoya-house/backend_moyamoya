@@ -769,7 +769,6 @@ def create_follow(user_id):
     db.session.commit()
     # メッセージ生成
     
-    user = User.query.get(user_id=current_user_id)
     context = 'f{user.user_name}があなたをフォローしました'
     create_notifition(user_id,context)
     db.session.commit()

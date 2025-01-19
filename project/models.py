@@ -93,6 +93,35 @@ class Chats(db.Model):
     receiver = db.relationship('User', foreign_keys=[receiver_user_id])
     group = db.relationship('GroupChat', foreign_keys=[group_id])
 
+# CallSessionテーブル
+class CallSession(db.Model):
+    __tablename__ = 'call_session'
+    session_id = db.Column(db.Integer, primary_key=True)
+    session_type = db.Column(db.String(50), nullable=False)  # "personal" or "group"
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chat.group_id'), nullable=True)
+    caller_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime, nullable=True)
+
+    # Relation
+    caller = db.relationship('User', foreign_keys=[caller_id])
+    group = db.relationship('GroupChat', foreign_keys=[group_id])
+
+
+# CallParticipants テーブル
+class CallParticipants(db.Model):
+    __tablename__ = 'call_participants'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('call_session.session_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    left_at = db.Column(db.DateTime, nullable=True)
+
+    # Relation
+    user = db.relationship('User', foreign_keys=[user_id])
+    session = db.relationship('CallSession', foreign_keys=[session_id])
+
+
 # Potsテーブル
 class Pots(db.Model):
     pots_id = db.Column(db.Integer, primary_key=True)
@@ -125,6 +154,7 @@ class Nice(db.Model):
         return f"<Nice(nice_id={self.nice_id}, post_id={self.post_id}, user_id={self.user_id})>"
     
 
+# Bookmarkテーブル
 class Bookmark(db.Model):
     __tablename__ = 'bookmark'
     
@@ -136,7 +166,7 @@ class Bookmark(db.Model):
     post = db.relationship('Moyamoya', foreign_keys=[post_id])
     user = db.relationship('User', foreign_keys=[user_id])
 
-
+# 通知テーブル
 class Notification(db.Model):
     notification_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'),nullable=False)

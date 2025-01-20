@@ -2,7 +2,7 @@ import base64
 from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
-from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember, HashTag, MoyamoyaHashtag
+from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember, HashTag, MoyamoyaHashtag , CallSession, CallParticipants
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
 from project import db, create_app,socket
 from flask_socketio import emit, disconnect
@@ -998,7 +998,89 @@ def handle_send_message(data):
         'chat_at': new_message.chat_at.strftime('%Y-%m-%d %H:%M:%S')
     }, broadcast=True)
 
+# 通話機能
+@socket.on('start_call')
+def handle_start_call(data):
+    """
+    WebRTCの通話を開始する
+    """
+    
+    try:
+        session_type = data['session_type']
+        caller_id = data['caller_id']
+        group_id = data.get('group_id')
+        receiver_user_id = data['receiver_user_id']
+        
+        # データベースに通話セッションを保存
+        new_session = CallSession(
+            session_type = session_type,
+            caller_id = caller_id,
+            group_id = group_id,
+        )
+        db.session.add(new_session)
+        db.session.commit()
+        # チャット履歴に「通話開始」を記録
+        chat_log = Chats(
+            message="通話が開始されました。",
+            send_user_id=caller_id,
+            group_id=group_id if session_type == 'group' else None,
+            receiver_user_id=receiver_user_id if session_type == 'personal' else None,
+            chat_at=datetime.utcnow()
+        )
+        db.session.add(chat_log)
+        db.session.commit()
+        
+        # クライアントに通話開始を通知
+        emit('call_started', {
+            'session_id': new_session.session_id,
+            'message': chat_log.message,
+            'chat_at': chat_log.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
+        }, broadcast=True)
+    except Exception as e:
+        print(f"Error starting call: {str(e)}")
+        emit('error', {'error': 'Failed to start call'})
 
+# 通話終了
+@socket.on('end_call')
+def handle_end_call(data):
+    """
+    通話を終了する
+    """
+    try:
+        session_id = data['session_id']
+        caller_id = data['caller_id']
+        duration = data['duration']  # 通話時間（秒）
+        group_id = data.get('group_id')
+        receiver_user_id = data.get('receiver_user_id')
+
+        # 通話セッションの終了時間を更新
+        session = CallSession.query.get(session_id)
+        session.end_time = datetime.utcnow()
+        db.session.commit()
+
+        # 通話時間を計算してチャット履歴に記録
+        minutes, seconds = divmod(duration, 60)
+        duration_str = f"{minutes}分{seconds}秒"
+
+        chat_log = Chats(
+            message=f"通話が終了しました（通話時間: {duration_str}）",
+            send_user_id=caller_id,
+            group_id=group_id if session.group_id else None,
+            receiver_user_id=receiver_user_id if session.group_id is None else None,
+            chat_at=datetime.utcnow()
+        )
+        db.session.add(chat_log)
+        db.session.commit()
+
+        # クライアントに通話終了を通知
+        emit('call_ended', {
+            'message': chat_log.message,
+            'chat_at': chat_log.chat_at.strftime('%Y-%m-%d %H:%M:%S'),
+        }, broadcast=True)
+
+    except Exception as e:
+        print(f"Error ending call: {str(e)}")
+        emit('error', {'error': 'Failed to end call'})
 
 @bp.route('/chat_send', methods=['GET'])
 @jwt_required()

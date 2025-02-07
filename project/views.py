@@ -272,8 +272,8 @@ def create_moyamoya():
         hashtags = re.findall(r'#\w+', moyamoya_post)
 
         for tag in hashtags:
-            # ハッシュタグ名を正規化（例: 前後のスペース除去）
-            tag_name = tag.strip().lower()
+            # ハッシュタグ名を正規化（例: 前後のスペース除去）し、#を除去
+            tag_name = tag.strip().lower().lstrip('#')
 
             # 既存のタグを検索
             existing_tag = HashTag.query.filter_by(tag_name=tag_name).first()

@@ -512,7 +512,7 @@ def delete_moyamoya(id):
         return jsonify({'error': 'moyamoya not found'}), 404
 
 # ハッシュタグに基づく投稿一覧取得
-@bp.route('/hashtags/<string:hashtag>', methods=['GET'])
+@bp.route('/hashtags/<path:hashtag>', methods=['GET'])
 def get_hashtag_post(hashtag):
     try:
         # Moyamoya -> MoyamoyaHashtag -> HashTag のリレーションを使ってフィルタリング

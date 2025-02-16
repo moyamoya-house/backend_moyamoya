@@ -554,22 +554,29 @@ def trend():
 
 # pots 全件取得
 @bp.route('/pots',methods=['GET'])
+@jwt_required()
 def get_pots_all():
-    pots = Pots.query.all()
-    pots_data = []
+    current_user = get_jwt_identity()
     
-    for pot in pots:
-        pot_data = {
-            "id": pot.pots_id,
-            "audio": pot.audio_file,
-            "stress_level": pot.stress_level,
-            "emotion_score": pot.emotion_score,
-            "classification": pot.classification,
-            "user_id": pot.pots_user_id,
-            "solution": pot.solution,
-            "created_at": pot.created_at.strftime("%Y-%m-%d %H:%M:%S") if pot.created_at else None,
-        }
-        pots_data.append(pot_data)
+    if current_user:
+        following_user = Follow.query.filter_by(follower_user_id=current_user).all()
+        following_user_ids = [follow.followed_user_id for follow in following_user]
+        # フォローユーザーとログインユーザーの投稿を取得
+        pots = Pots.query.filter(Pots.pots_user_id.in_(following_user_ids + [current_user])).all()
+        pots_data = []
+    
+        for pot in pots:
+            pot_data = {
+                "id": pot.pots_id,
+                "audio": pot.audio_file,
+                "stress_level": pot.stress_level,
+                "emotion_score": pot.emotion_score,
+                "classification": pot.classification,
+                "user_id": pot.pots_user_id,
+                "solution": pot.solution,
+                "created_at": pot.created_at.strftime("%Y-%m-%d %H:%M:%S") if pot.created_at else None,
+            }
+            pots_data.append(pot_data)
     return jsonify(pots_data), 200
 
 # pots create

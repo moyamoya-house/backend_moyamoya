@@ -4,3 +4,4 @@ migrations/versions/*.py text eol=lf
 project/__pycache__/*
 __pycache__/*.pyc
 */__pycache__/*
+.vercel

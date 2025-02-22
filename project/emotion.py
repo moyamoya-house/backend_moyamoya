@@ -1,32 +1,37 @@
-# sentiment_analysis.py
-import torch
-from transformers import BertTokenizer, BertForSequenceClassification
-import torch.nn.functional as F
-# 感情分析モデルとTokenizerの準備
-model_name = 'nlptown/bert-base-multilingual-uncased-sentiment'
-tokenizer = BertTokenizer.from_pretrained(model_name)
-model = BertForSequenceClassification.from_pretrained(model_name)
+from textblob import TextBlob
+from deep_translator import GoogleTranslator
 
-# 感情分析関数
+def translate_to_english(text):
+    """ 日本語のテキストを英語に翻訳 """
+    return GoogleTranslator(source="ja", target="en").translate(text)
+
 def analyze_sentiment(text):
-    # テキストのトークナイズ
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+    """ 日本語の感情分析（Google翻訳 + TextBlob） """
+    # 日本語を英語に翻訳
+    translated_text = translate_to_english(text)
     
-    # モデルで推論
-    with torch.no_grad():
-        outputs = model(**inputs)
-    logits = outputs.logits
+    # TextBlob で感情分析
+    blob = TextBlob(translated_text)
+    polarity = blob.sentiment.polarity  # -1（ネガティブ）〜 1（ポジティブ）
 
-    # ソフトマックス関数でスコアを確率に変換
-    probabilities = F.softmax(logits, dim=1).squeeze()
+    # 感情の分類
+    if polarity <= -0.6:
+        predicted_emotion = "超ネガティブ"
+        predicted_label = 0
+    elif polarity < -0.2:
+        predicted_emotion = "ネガティブ"
+        predicted_label = 1
+    elif polarity < 0.2:
+        predicted_emotion = "ニュートラル"
+        predicted_label = 2
+    elif polarity < 0.6:
+        predicted_emotion = "ポジティブ"
+        predicted_label = 3
+    else:
+        predicted_emotion = "超ポジティブ"
+        predicted_label = 4
 
-    # スコアに基づく感情ラベルの予測
-    predicted_label = torch.argmax(probabilities).item()
-    emotion_labels = ["超ネガティブ", "ネガティブ", "ニュートラル", "ポジティブ", "超ポジティブ"]
-    predicted_emotion = emotion_labels[predicted_label]
-
-    # `voltage` の詳細化 - 予測されたクラスの確率値
-    voltage = probabilities[predicted_label].item()  # 0 から 1 の範囲で出力されます
+    voltage = abs(polarity)  # 0〜1 の範囲
 
     return {
         "text": text,

@@ -620,7 +620,7 @@ def get_pots(id):
             'emotion_score': pots.emotion_score,
             'stress_level': pots.stress_level,
             'pots_user_id': pots.pots_user_id,
-            'created_at': pots.created_at,
+            "created_at": pots.created_at.strftime("%Y-%m-%d %H:%M:%S") if pots.created_at else None,
             "solution": pots.solution,
             'classification': pots.classification,
         }

@@ -3,8 +3,8 @@ from functools import wraps
 from flask import request, jsonify, Blueprint, current_app, send_from_directory
 from flask_login import current_user, login_user , login_required
 from project.models import User, Moyamoya, Chats, Follow, Pots, Nice, Bookmark, Notification, GroupChat, GroupMember, HashTag, MoyamoyaHashtag , CallSession, CallParticipants
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
-from project import db, create_app,socket
+from flask_jwt_extended import create_access_token, get_jwt, jwt_required, get_jwt_identity, create_refresh_token, decode_token, verify_jwt_in_request
+from project import db, create_app,socket,blacklist
 from flask_socketio import emit, disconnect
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +19,7 @@ from pydub import AudioSegment
 from project.openai import generate_stress_relief_suggestion
 
 bp = Blueprint('main',__name__)
+
 
 # user 全体取得
 @bp.route('/users',methods=['GET'])
@@ -172,6 +173,12 @@ def login():
             return jsonify({'error': 'login error'}), 400
         
 
+@bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    jti = get_jwt()['jti']
+    blacklist.add(jti)
+    return jsonify(message="Logged out successfully"), 200
 
 # password reset
 @bp.route('/password_reset', methods=['PUT'])

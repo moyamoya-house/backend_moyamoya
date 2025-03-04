@@ -22,6 +22,8 @@ jwt = JWTManager()
 
 socket = SocketIO()
 
+blacklist = set()
+
 load_dotenv()
 
 def create_app(config_filename ="config.py"):
@@ -52,6 +54,10 @@ def create_app(config_filename ="config.py"):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+    
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blacklist(jwt_header, jwt_data):
+        return jwt_data["jti"] in blacklist
     
     from project.views import bp as main_bp
     app.register_blueprint(main_bp)

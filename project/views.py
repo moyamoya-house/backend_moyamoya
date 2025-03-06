@@ -909,6 +909,34 @@ def follow_type(user_id):
     else:
         return jsonify({"isFollower": False}), 200
 
+#お薦めユーザー(フォロワーのフォロワー)
+@bp.route('/recommend_user',methods=['GET'])
+@jwt_required()
+def recommend_user():
+    current_user = get_jwt_identity()
+    
+    # フォロワーユーザーを取得
+    followers = db.session.query(User).join(Follow, Follow.follower_user_id == User.user_id) \
+        .filter(Follow.followed_user_id == current_user).all()
+    
+    # フォロワーのフォロワーを取得
+    recommend_users = []
+    for follower in followers:
+        recommend_users += db.session.query(User).join(Follow, Follow.follower_user_id == User.user_id) \
+            .filter(Follow.followed_user_id == follower.user_id).all()
+    
+    # 重複を削除
+    recommend_users = list(set(recommend_users))
+    
+    # 結果を整形して返す
+    recommend_list = [{
+        'id': user.user_id,
+        'name': user.user_name,
+        'prof_image': user.prof_image,
+        'prof_comment': user.prof_comment,
+    } for user in recommend_users]
+    
+    return jsonify({ 'recommend': recommend_list }),200
 
 # chats crudAPI
 

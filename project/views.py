@@ -1240,6 +1240,26 @@ def my_group():
     
     return jsonify(group_list),200
 
+
+# グループチャットのメンバーを取得
+@bp.route('/groupchat/members/<int:group_id>', methods=['GET'])
+@jwt_required()
+def get_group_members(group_id):
+    group = GroupChat.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'グループが見つかりません'}), 404
+    
+    members = db.session.query(User).join(GroupMember).filter(GroupMember.group_id == group_id).all()
+    
+    member_list = [{
+        'id': member.user_id,
+        'name': member.user_name,
+        'prof_image': member.prof_image,
+        'prof_comment': member.prof_comment,
+    } for member in members]
+    
+    return jsonify({'members': member_list}), 200
+
 @bp.route('/group_image/<filename>',methods=['GET'])
 def group_image(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER_GROUP'],filename)

@@ -698,6 +698,8 @@ def analyze_audio():
             text=speech_text,
         )
         
+        solution_text = sugeestion[:255]  
+        
         print(sugeestion)
         
         pot = Pots(
@@ -705,7 +707,7 @@ def analyze_audio():
             emotion_score = sentiment_result["predicted"],
             stress_level = sentiment_result["voltage"],
             classification = sentiment_result["classification"],
-            solution = sugeestion,
+            solution = solution_text,
             pots_user_id = user,
             created_at = datetime.now()
         )

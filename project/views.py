@@ -698,7 +698,6 @@ def analyze_audio():
             text=speech_text,
         )
         
-        solution_text = sugeestion[:255]  
         
         print(sugeestion)
         
@@ -707,7 +706,7 @@ def analyze_audio():
             emotion_score = sentiment_result["predicted"],
             stress_level = sentiment_result["voltage"],
             classification = sentiment_result["classification"],
-            solution = solution_text,
+            solution = sugeestion,
             pots_user_id = user,
             created_at = datetime.now()
         )
@@ -785,7 +784,7 @@ def create_follow(user_id):
     db.session.commit()
     # メッセージ生成
     
-    context = 'f{user.user_name}があなたをフォローしました'
+    context = f'{current_user_id.user_name}があなたをフォローしました'
     create_notifition(user_id,context)
     db.session.commit()
     return jsonify({
@@ -1301,6 +1300,8 @@ def nice(post_id):
         new_nice = Nice(post_id=post_id,user_id=current_user)
         db.session.add(new_nice)
         db.session.commit()
+        context = f'{current_user.user_name}があなたの投稿にいいねしました'
+        create_notifition(current_user,context)
         liked=True
         return jsonify({"liked": liked}),200
 

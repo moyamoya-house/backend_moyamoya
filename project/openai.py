@@ -23,7 +23,7 @@ def generate_stress_relief_suggestion(emotion, text):
     """
     感情と音声テキストに基づいてストレス解消方法を提案します。
     """
-    genai.configure(api_key="AIzaSyCwB3sQ9qk92BrJa1Q7LloOmf90HkskOyY")
+    genai.configure(api_key="AIzaSyCwB3sQ")
     model = genai.GenerativeModel("gemini-1.5-pro-latest")
 
     prompt = f"""
